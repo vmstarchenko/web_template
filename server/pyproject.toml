@@ -1,0 +1,16 @@
+[project]
+name = "app"
+version = "0.0.0"
+dependencies = [
+    "fastapi",
+    "pydantic",
+    "pydantic[dotenv]",
+    "uvicorn",
+]
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["app"]

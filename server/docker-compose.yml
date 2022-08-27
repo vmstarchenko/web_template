@@ -1,0 +1,28 @@
+version: '3.8'
+services:
+  web:
+    build:
+      context: .
+      dockerfile: ./etc/docker/web/Dockerfile
+      args:
+        GID: ${GROUP_ID}
+        UID: ${USER_ID}
+    volumes:
+      - .:/home/web
+      - ./app/static:/var/www/static
+      - ./var/volumes/media:/var/www/media
+    command: [
+      # "echo", "1",
+      "uvicorn", "app.main:app", "--host", "0.0.0.0", "--reload", "--reload-dir=app", "--reload-delay=1"
+    ]
+    environment:
+      - FASTAPI_DOTENV=etc/env/dev
+    env_file:
+      - etc/env/dev
+
+  nginx:
+    build: ./etc/docker/nginx
+    ports: ["8080:8080"]
+    user: ${USER_ID}
+    volumes:
+      - ./app/static:/var/www/static
