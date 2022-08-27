@@ -8,9 +8,39 @@ dependencies = [
     "uvicorn",
 ]
 
+[project.optional-dependencies]
+dev = [
+    "httpx",
+    "pytest",
+    "pytest-asyncio",
+    "pytest-cov",
+    "pytest-mypy",
+    "pytest-pylint",
+]
+
 [build-system]
 requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
 packages = ["app"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+disable_test_id_escaping_and_forfeit_all_rights_to_community_support = true
+addopts = [
+    "--pylint",
+    "--mypy",
+    "-vv",
+    "--cov=app", "--cov-report=xml", "--no-cov-on-fail",
+    # "-k", "test_testname",
+    "-r", "A",
+]
+testpaths = [
+    "tests",
+    "app",
+]
+filterwarnings = [
+    "ignore::DeprecationWarning:pylint*",
+    "ignore::DeprecationWarning:pytest_pylint*",
+]

@@ -1,0 +1,7 @@
+[MASTER]
+ignore=tests
+disable=
+    missing-module-docstring,missing-class-docstring,missing-function-docstring,
+    too-few-public-methods,fixme,redefined-builin,unused-argument
+extension-pkg-whitelist=pydantic
+good-names=i,e,N,f,it,id,db,Session
