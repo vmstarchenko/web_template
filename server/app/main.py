@@ -1,11 +1,12 @@
 from fastapi import FastAPI, applications
-from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware import cors, Middleware
 
 from app.core import settings
+from app.api.urls import router
 
 
+# TODO: add correct origins, methods and headers
 middleware = [
     Middleware(
         cors.CORSMiddleware,
@@ -18,17 +19,12 @@ middleware = [
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
-    opendapi_url=f"{settings.API_PREFIX}/schema.json",
+    openapi_url=settings.SCHEMA_URL,
     middleware=middleware,
+	docs_url=None, redoc_url=None,
 )
+
+app.include_router(router)
 
 # Use nginx or fastapi for static and media files
-# app.mount(settings.STATIC_URL, StaticFiles(directory=settings.STATIC_ROOT), name='static')
 app.mount(settings.MEDIA_URL, StaticFiles(directory=settings.MEDIA_ROOT), name='media')
-
-applications.get_swagger_ui_html = lambda *args, **kwargs: get_swagger_ui_html(
-    *args, **kwargs,
-    swagger_js_url='/static/js/swagger-ui-bundle.js',
-    swagger_css_url='/static/css/swagger-ui.css',
-    swagger_favicon_url='/favicon.ico',
-)

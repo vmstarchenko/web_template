@@ -1,10 +1,8 @@
 # Plan
-- github
-- simple endpoint
+- tests
 - fastapi-extras
 - db container: mysql, sqlite, postgres
 - db usage example
-- tests
 - openapi client
 - ui init
 - setup instruction in readme

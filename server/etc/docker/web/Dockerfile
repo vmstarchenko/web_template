@@ -16,7 +16,7 @@ RUN set -ex \
     && groupadd -g $GID -o $UNAME \
     && useradd --create-home --shell /bin/bash --home /home/$UNAME \
         -u $UID -g $GID $UNAME \
-    && mkdir /var/www/static /var/www/media
+    && mkdir /var/www/static /var/www/media -p
 
 USER $UNAME
 

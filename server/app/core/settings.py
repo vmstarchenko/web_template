@@ -4,8 +4,9 @@ from pydantic import BaseSettings
 
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str = "my_project"
+    PROJECT_NAME: str = 'my_project'
     API_PREFIX: str = '/api'
+    SCHEMA_URL: str = '/api/schema.json'
 
     STATIC_ROOT: str = '/var/www/static'
     STATIC_URL: str = '/static/'
@@ -13,5 +14,4 @@ class Settings(BaseSettings):
     MEDIA_URL: str = '/media/'
 
     class Config:
-        case_sensitive = True
         env_file = os.environ['FASTAPI_DOTENV']
