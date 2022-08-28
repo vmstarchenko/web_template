@@ -30,7 +30,8 @@ target_metadata = Base.metadata
 
 def get_url():
     url = settings.DATABASE_URL
-    url = url.replace('+aiosqlite', '')
+    for suffix in ['+aiosqlite', '+asyncpg', '+asyncmy']:
+        url = url.replace(suffix, '')
     return url
 
 def run_migrations_offline() -> None:

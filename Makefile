@@ -38,6 +38,6 @@ db_migrate: server_down
 	podman-compose -f server/docker-compose.yml run web \
         alembic --config ./alembic/alembic.ini upgrade head
 
-pip_install: server_down
+pip_install: server_down server_build
 	podman-compose -f server/docker-compose.yml run web \
 		python -m pip install -e .[dev]

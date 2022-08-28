@@ -8,6 +8,9 @@ dependencies = [
     "pyyaml",
     "sqlalchemy",
     "sqlalchemy[asyncio]",
+    # "aiosqlite",
+    # "asyncpg",
+    "asyncmy", "mysqlclient", "cryptography",
     "uvicorn",
 ]
 

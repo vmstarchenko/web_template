@@ -8,7 +8,7 @@ ARG \
 RUN set -ex \
     && apt-get update \
     && apt-get install \
-        curl \
+        curl default-libmysqlclient-dev gcc \
         -y
     # && rm -rf /var/lib/apt/lists/*
 

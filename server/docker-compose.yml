@@ -1,5 +1,18 @@
 version: '3.8'
 services:
+  db:
+    image: docker.io/mysql:debian
+    command: --default-authentication-plugin=mysql_native_password
+    # restart: always
+    volumes:
+      - ./var/volumes/db:/var/lib/mysql
+    environment:
+      MYSQL_DATABASE: dev_db
+      MYSQL_USER: user
+      MYSQL_ROOT_PASSWORD: example
+      MYSQL_PASSWORD: example
+    user: "${USER_ID}:${GROUP_ID}"
+
   web:
     build:
       context: .
@@ -20,13 +33,8 @@ services:
       - FASTAPI_DOTENV=etc/env/dev
     # env_file:
     #   - etc/env/.dev
-
-  # db:
-  #   image: docker.io/mysql:debian
-  #   command: --default-authentication-plugin=mysql_native_password
-  #   restart: always
-  #   environment:
-  #     MYSQL_ROOT_PASSWORD: example
+    depends_on:
+      - db  # : {'condition': 'service_healthy'}
 
   nginx:
     build: ./etc/docker/nginx
@@ -34,3 +42,4 @@ services:
     user: ${USER_ID}
     volumes:
       - ./app/static:/var/www/static
+    depends_on: ["web"]
