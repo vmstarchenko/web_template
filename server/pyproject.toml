@@ -5,22 +5,30 @@ dependencies = [
     "fastapi",
     "pydantic",
     "pydantic[dotenv]",
+    "sqlalchemy",
+    "sqlalchemy[asyncio]",
     "uvicorn",
 ]
 
 [project.optional-dependencies]
 dev = [
+    "aiosqlite",
     "httpx",
     "pytest",
     "pytest-asyncio",
     "pytest-cov",
     "pytest-mypy",
     "pytest-pylint",
+    "sqlalchemy[mypy]"
 ]
 
 [build-system]
 requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[tool.mypy]
+exclude = "venv"
+plugins = ["pydantic.mypy", "sqlalchemy.ext.mypy.plugin"]
 
 [tool.setuptools]
 packages = ["app"]
@@ -31,10 +39,12 @@ disable_test_id_escaping_and_forfeit_all_rights_to_community_support = true
 addopts = [
     "--pylint",
     "--mypy",
-    "-vv",
     "--cov=app", "--cov-report=xml", "--no-cov-on-fail",
     # "-k", "test_testname",
+    # "-k", "test_item",
     "-r", "A",
+    # "-vv",
+    # "--showlocals",
 ]
 testpaths = [
     "tests",

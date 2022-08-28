@@ -1,5 +1,4 @@
 # Plan
-- tests
 - fastapi-extras
 - db container: mysql, sqlite, postgres
 - db usage example

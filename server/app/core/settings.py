@@ -13,5 +13,7 @@ class Settings(BaseSettings):
     MEDIA_ROOT: str = '/var/www/media'
     MEDIA_URL: str = '/media/'
 
+    DATABASE_URL: AnyUrl   # "sqlite+aiosqlite:///./test.db"
+
     class Config:
         env_file = os.environ['FASTAPI_DOTENV']
