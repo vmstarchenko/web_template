@@ -17,8 +17,8 @@ services:
     ]
     environment:
       - FASTAPI_DOTENV=etc/env/dev
-    env_file:
-      - etc/env/dev
+    # env_file:
+    #   - etc/env/.dev
 
   nginx:
     build: ./etc/docker/nginx

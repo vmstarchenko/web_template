@@ -15,6 +15,11 @@ server_test: server_down server_build
 
 server_tests: server_test
 
+api_export_schema: server_down server_build
+	podman-compose -f server/docker-compose.yml run web \
+		python etc/scripts/export_schema.py -e etc/env/dev -o etc/api_schema.yaml
+
+
 pip_install: server_down server_build
 	podman-compose -f server/docker-compose.yml run web \
 		python -m pip install -e .[dev]

@@ -4,7 +4,7 @@ from pydantic import BaseSettings
 
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str = 'my_project'
+    PROJECT_NAME: str = 'my_project ффффф'
     API_PREFIX: str = '/api'
     SCHEMA_URL: str = '/api/schema.json'
 
@@ -13,7 +13,5 @@ class Settings(BaseSettings):
     MEDIA_ROOT: str = '/var/www/media'
     MEDIA_URL: str = '/media/'
 
-    DATABASE_URL: AnyUrl   # "sqlite+aiosqlite:///./test.db"
+    DATABASE_URL: str   # "sqlite+aiosqlite:///./test.db"
 
-    class Config:
-        env_file = os.environ['FASTAPI_DOTENV']

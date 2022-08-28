@@ -5,6 +5,7 @@ dependencies = [
     "fastapi",
     "pydantic",
     "pydantic[dotenv]",
+    "pyyaml",
     "sqlalchemy",
     "sqlalchemy[asyncio]",
     "uvicorn",
