@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware import cors, Middleware
 
+from app.db import configure
 from app.core import settings
 from app.api.urls import router
 
@@ -28,3 +29,10 @@ app.include_router(router)
 
 # Use nginx or fastapi for static and media files
 app.mount(settings.MEDIA_URL, StaticFiles(directory=settings.MEDIA_ROOT), name='media')
+
+@app.on_event('startup')
+def startup_event():
+    if settings.ENV_TYPE == 'test':
+        return
+
+    configure(settings.DATABASE_URL)

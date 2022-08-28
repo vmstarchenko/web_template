@@ -11,6 +11,7 @@ services:
       - .:/home/web
       - ./app/static:/var/www/static
       - ./var/volumes/media:/var/www/media
+      - ./var/volumes/db:/var/db
     command: [
       # "echo", "1",
       "uvicorn", "app.main:app", "--host", "0.0.0.0", "--reload", "--reload-dir=app", "--reload-delay=1"
@@ -19,6 +20,13 @@ services:
       - FASTAPI_DOTENV=etc/env/dev
     # env_file:
     #   - etc/env/.dev
+
+  # db:
+  #   image: docker.io/mysql:debian
+  #   command: --default-authentication-plugin=mysql_native_password
+  #   restart: always
+  #   environment:
+  #     MYSQL_ROOT_PASSWORD: example
 
   nginx:
     build: ./etc/docker/nginx

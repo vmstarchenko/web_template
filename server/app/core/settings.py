@@ -14,4 +14,5 @@ class Settings(BaseSettings):
     MEDIA_URL: str = '/media/'
 
     DATABASE_URL: str   # "sqlite+aiosqlite:///./test.db"
+    ENV_TYPE: str
 
