@@ -18,7 +18,7 @@ COPY \
     20-envsubst-on-templates.sh \
     30-tune-worker-processes.sh \
     /docker-entrypoint.d
-COPY my_project.conf /etc/nginx/conf.d/default.conf
+COPY default.conf /etc/nginx/conf.d/default.conf
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
 

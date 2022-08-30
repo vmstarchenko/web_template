@@ -1,11 +1,11 @@
 version: '3.8'
 services:
   db:
-    image: docker.io/mysql:debian
-    command: --default-authentication-plugin=mysql_native_password
+    build:
+      context: ./etc/docker/mysql_db
     # restart: always
     volumes:
-      - ./var/volumes/db:/var/lib/mysql
+      - ./var/volumes/db:/home/db/data
     environment:
       MYSQL_DATABASE: dev_db
       MYSQL_USER: user
