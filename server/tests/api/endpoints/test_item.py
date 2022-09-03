@@ -2,8 +2,17 @@ import pytest
 from httpx import AsyncClient
 
 
-async def test_item(client: AsyncClient) -> None:
-    resp = await client.get('/api/item/')
-    assert resp.status_code == 200, resp
+async def test_item_create(client: AsyncClient) -> None:
+    resp = await client.post('/api/item/')
     res = resp.json()
-    assert res == {'id': 1}
+    assert resp.status_code == 200, res
+    assert res == {'id': 1}, res
+
+
+async def test_item_get(client: AsyncClient) -> None:
+    await client.post('/api/item/')
+
+    resp = await client.get('/api/item/1/')
+    assert resp.status_code == 200
+    res = resp.json()
+    assert res == {'id': 1}, res

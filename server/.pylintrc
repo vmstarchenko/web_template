@@ -2,6 +2,6 @@
 ignore=tests
 disable=
     missing-module-docstring,missing-class-docstring,missing-function-docstring,
-    too-few-public-methods,fixme,redefined-builin,unused-argument
+    too-few-public-methods,fixme,redefined-builtin,unused-argument
 extension-pkg-whitelist=pydantic
 good-names=i,e,N,f,it,id,db,Session

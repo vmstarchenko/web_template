@@ -3,8 +3,12 @@ name = "app"
 version = "0.0.0"
 dependencies = [
     "fastapi",
+    "passlib",
+    "python-jose",
+    "python-multipart",
     "pydantic",
     "pydantic[dotenv]",
+    "pydantic[email]",
     "pyyaml",
     "sqlalchemy",
     "sqlalchemy[asyncio]",
@@ -16,15 +20,17 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-    "alembic",
     "aiosqlite",
+    "alembic",
     "httpx",
     "pytest",
     "pytest-asyncio",
     "pytest-cov",
     "pytest-mypy",
     "pytest-pylint",
-    "sqlalchemy[mypy]"
+    "sqlalchemy[mypy]",
+    "types-python-jose",
+    "types-passlib",
 ]
 
 [build-system]
@@ -46,7 +52,7 @@ addopts = [
     "--mypy",
     "--cov=app", "--cov-report=xml", "--no-cov-on-fail",
     # "-k", "test_testname",
-    # "-k", "test_item",
+    # "-k", "test_use_token",
     "-r", "A",
     # "-vv",
     # "--showlocals",
