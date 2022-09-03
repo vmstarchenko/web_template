@@ -6,21 +6,27 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import relationship
 
-from app.db import Base, BaseManager
+from app.db import BaseModel, BaseCRUD, Session
 
 from app.core import security, settings
 
 from .user import User
 
-class Token(Base):
+
+class CRUD(BaseCRUD['Token']):
+    async def load(self, db: Session, payload: dict[str, str | datetime.datetime]) -> 'Token':
+        return await self.get(db, id=payload['tid'])
+
+
+class Token(BaseModel):
     id = Column(Integer, primary_key=True, index=True)
     is_active = Column(Boolean(), default=True, nullable=False)
     last_usage = Column(DateTime, nullable=False, default=lambda: datetime.datetime.now())  # pylint: disable=unnecessary-lambda
     user_id = Column(Integer, ForeignKey('user.id'), nullable=False)
     user: User = relationship(User, uselist=False, lazy='selectin')
 
-    def encode(self, expires_delta: datetime.timedelta = None) -> str:
-        if expires_delta:
+    def encode(self, expires_delta: datetime.timedelta | None = None) -> str:
+        if expires_delta is not None:
             expire = datetime.datetime.utcnow() + expires_delta
         else:
             expire = datetime.datetime.utcnow() + datetime.timedelta(
@@ -43,9 +49,4 @@ class Token(Base):
         payload['tid'] = int(payload['tid'])
         return payload
 
-
-    class Manager(BaseManager['Token']):
-        async def load(self, payload: dict[str, str | datetime.datetime]) -> 'Token':
-            return await self.get(id=payload['tid'])
-
-    objects: Manager  # type: ignore
+    crud: CRUD

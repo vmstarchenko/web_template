@@ -1,7 +1,13 @@
 from sqlalchemy import Column, Integer
 
-from app.db import Base
+from app.db import BaseModel, BaseCRUD
 
 
-class Item(Base):
+class CRUD(BaseCRUD['Item']):
+    pass
+
+
+class Item(BaseModel):
     id = Column(Integer, primary_key=True, autoincrement=True)
+
+    crud: CRUD

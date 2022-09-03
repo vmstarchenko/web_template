@@ -1,4 +1,4 @@
-from typing import AsyncIterable
+from typing import AsyncIterable, Any
 import functools
 
 from httpx import AsyncClient as Client
@@ -6,7 +6,8 @@ import pytest
 from sqlalchemy.orm import sessionmaker
 
 
-from app import deps, db as db_, models
+from app import deps, models
+from app.db import configure, Session, BaseModel, SessionMeta
 from app.core import settings
 from app.main import app
 
@@ -17,18 +18,18 @@ from sqlalchemy.pool import StaticPool
 
 
 @pytest.fixture()
-async def db_initials():
+async def db_initials() -> AsyncIterable[Any]:
     uri = 'sqlite+aiosqlite://'
 
-    TestSession = sessionmaker(
+    TestSession: SessionMeta = sessionmaker(  # type: ignore
         expire_on_commit=False,
-        class_=db_.Session,
+        class_=Session,
     )
 
-    conf = db_.configure(uri=uri, Session=TestSession)
+    conf = configure(uri=uri, Session=TestSession)
     engine = conf['engine']
 
-    meta = db_.Base.metadata
+    meta = BaseModel.metadata
     async with engine.begin() as conn:
         await conn.run_sync(meta.drop_all)
         await conn.run_sync(meta.create_all)
@@ -53,7 +54,7 @@ async def client(db_initials) -> AsyncIterable[Client]:
 
 @pytest.fixture()
 async def user(client, db):
-    obj = await models.User.Manager(models.User, db).create(email='test@test.example', password='password', username='username')
+    obj = await models.User.crud.create(db, email='test@test.example', password='password', username='username')
     obj.headers = await get_user_headers(client, 'username', 'password')
     yield obj
     # obj.delete()  # TODO
@@ -61,7 +62,8 @@ async def user(client, db):
 
 @pytest.fixture()
 async def superuser(client, db):
-    obj = await models.User.Manager(models.User, db).create(
+    obj = await models.User.crud.create(
+        db,
         email='superuser@test.example', password='password', username='superuser',
         is_superuser=True,
     )
@@ -80,3 +82,4 @@ async def get_user_headers(client, username, password):
     assert token, res
 
     return {'Authorization': f'Bearer {token}'}
+

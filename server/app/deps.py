@@ -22,7 +22,7 @@ async def get_current_token(
 ) -> Token:
     try:
         payload = Token.decode(jwt_token)
-        token = await Token.objects.load(payload)
+        token = await Token.crud.load(db, payload)
     except ExpiredSignatureError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

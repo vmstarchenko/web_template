@@ -1,24 +1,23 @@
-from typing import TypeVar, Generic
+from typing import TypeVar, Generic, Any
 from sqlalchemy import select
 from sqlalchemy.exc import NoResultFound
 from fastapi.encoders import jsonable_encoder
 
-from .session import Session
+from .session import Session, SessionMeta
 
-T = TypeVar('T', bound='Base')
+T = TypeVar('T', bound='BaseModel')
 _DEFAULT = object()
 
 
-class BaseManager(Generic[T]):
-    def __init__(self, Model, db: Session):  # pylint: disable=invalid-name
-        self.db = db
+class BaseCRUD(Generic[T]):
+    def __init__(self, Model: 'BaseModelMeta'):  # pylint: disable=invalid-name
         self.Model = Model  # pylint: disable=invalid-name
 
-    async def create(self, *, save_=True, **kwargs) -> T:
+    async def create(self, db: Session, *, save_: bool = True, **kwargs: Any) -> T:
         obj = self.Model(**kwargs)
-        self.db.add(obj)
+        db.add(obj)
         if save_:
-            await obj.save(self.db)
+            await obj.save(db)
         return obj
 
     def _get_query(self, *conditions, **kv_conditions):
@@ -29,11 +28,11 @@ class BaseManager(Generic[T]):
             query = query.filter_by(**kv_conditions)
         return query
 
-    async def get(self, *conditions, **kv_conditions) -> T:
-        return (await self.db.execute(self._get_query(*conditions, **kv_conditions))).scalar_one()
+    async def get(self, db: Session, *conditions: Any, **kv_conditions: Any) -> T:
+        return (await db.execute(self._get_query(*conditions, **kv_conditions))).scalar_one()
 
     async def get_or_create(
-            self, *conditions, save_=True, defaults_=None, **kv_conditions,
+            self, db: Session, *conditions, save_=True, defaults_=None, **kv_conditions,
             ) -> tuple[bool, T]:
         try:
             created, obj = False, await self.get(*conditions, save_=save_, **kv_conditions)
@@ -41,7 +40,7 @@ class BaseManager(Generic[T]):
             created, obj = True, await self.create(**(defaults_ or {}), save_=save_)
         return created, obj
 
-    async def update(self, obj: T, obj_in=None, save_=True, **kwargs) -> T:
+    async def update(self, db: Session, obj: T, obj_in=None, save_=True, **kwargs) -> T:
         if isinstance(obj, dict):
             kwargs.update(obj_in)
         else:
@@ -53,9 +52,9 @@ class BaseManager(Generic[T]):
             if value is not _DEFAULT:
                 setattr(obj, field, value)
 
-        self.db.add(obj)
+        db.add(obj)
         if save_:
-            await obj.save(self.db)
+            await obj.save(db)
         return obj
 
     # def get_multi_by_user(self, *, user_id: int, skip: int = 0, limit: int = 100) -> list[T]:
@@ -68,17 +67,17 @@ class BaseManager(Generic[T]):
     #     )
 
     # def get_multi(self, *, skip: int = 0, limit: int = 100) -> list[T]:
-    #     return self.db.query(self.Model).offset(skip).limit(limit).all()
+    #     return db.query(self.Model).offset(skip).limit(limit).all()
 
     # def get_all(self, *condition) -> list[T]:
-    #     return self.db.query(self.Model).filter(*condition).all()
+    #     return db.query(self.Model).filter(*condition).all()
 
     # def search(self, *condition) -> list[T]:
-    #     return self.db.query(self.Model).filter(*condition)
+    #     return db.query(self.Model).filter(*condition)
 
 
-    async def remove(self, *conditions, **kv_conditions):
-        await self.db.execute(self._get_query(*conditions, **kv_conditions).delete())
+    async def remove(self, db: Session, *conditions, **kv_conditions):
+        await db.execute(self._get_query(*conditions, **kv_conditions).delete())
 
 
-from .base_class import Base  # pylint: disable=unused-import,wrong-import-position,cyclic-import
+from .base_model import BaseModel, BaseModelMeta  # pylint: disable=unused-import,wrong-import-position,cyclic-import

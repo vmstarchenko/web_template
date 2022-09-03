@@ -44,14 +44,14 @@ async def user_create(
     """
     Create new user.
     """
-    manager = models.User.objects
-    user = await manager.get(email=user_in.email)
+    manager = models.User.crud
+    user = await manager.get(db, email=user_in.email)
     if user:
         raise HTTPException(
             status_code=400,
             detail="The user with this username already exists in the system.",
         )
-    user = await manager.create(obj_in=user_in)
+    user = await manager.create(db, obj_in=user_in)
     # if settings.EMAILS_ENABLED and user_in.email:
     #     send_new_account_email(
     #         email_to=user_in.email, username=user_in.email, password=user_in.password
@@ -79,7 +79,7 @@ def user_me_update(
         user_in.full_name = full_name
     if email is not None:
         user_in.email = email
-    user = models.User.objects.update(obj=current_user, obj_in=user_in)
+    user = models.User.crud.update(db, obj=current_user, obj_in=user_in)
     return user
 
 
@@ -109,15 +109,15 @@ async def user_register(
             status_code=403,
             detail="Open user registration is forbidden on this server",
         )
-    manager = models.User.objects
-    user = await manager.get(email=email)
+    manager = models.User.crud
+    user = await manager.get(db, email=email)
     if user:
         raise HTTPException(
             status_code=400,
             detail="The user with this username already exists in the system",
         )
     user_in = schemas.UserCreate(password=password, email=email, full_name=full_name)
-    user = await manager.create(obj_in=user_in)
+    user = await manager.create(db, obj_in=user_in)
     return user
 
 
@@ -130,7 +130,7 @@ async def user_detail(
     """
     Get a specific user by id.
     """
-    user = await models.User.objects.get(id=user_id)
+    user = await models.User.crud.get(db, id=user_id)
     if user == current_user:
         return user
     if not user.is_superuser:
@@ -151,14 +151,14 @@ async def user_update(
     """
     Update a user.
     """
-    manager = models.User.objects
-    user = await manager.get(id=user_id)
+    manager = models.User.crud
+    user = await manager.get(db, id=user_id)
     if not user:
         raise HTTPException(
             status_code=404,
             detail="The user with this username does not exist in the system",
         )
-    user = await manager.update(obj=user, obj_in=user_in)
+    user = await manager.update(db, obj=user, obj_in=user_in)
     return user
 
 
@@ -171,7 +171,8 @@ async def user_login(
     OAuth2 compatible token login, get an access token for future requests
     """
     try:
-        user = await models.User.objects.authenticate(
+        user = await models.User.crud.authenticate(
+            db,
             username=form_data.username, password=form_data.password
         )
     except NoResultFound as e:
@@ -180,7 +181,7 @@ async def user_login(
     if not user.is_active:
         raise HTTPException(status_code=400, detail="Inactive user")
 
-    token = await models.Token.objects.create(user_id=user.id)
+    token = await models.Token.crud.create(db, user_id=user.id)
     jwt_token = token.encode()
     return {
         "access_token": jwt_token,
@@ -193,7 +194,7 @@ async def user_login(
 #     """
 #     Password Recovery
 #     """
-#     user = models.User.objects.get_by_email(email=email)
+#     user = models.User.crud.get_by_email(email=email)
 #     if not user:
 #         raise HTTPException(
 #             status_code=404,
@@ -216,7 +217,7 @@ async def user_login(
 #     email = verify_password_reset_token(token)
 #     if not email:
 #         raise HTTPException(status_code=400, detail="Invalid token")
-#     user = models.User.objects.get_by_email(email=email)
+#     user = models.User.crud.get_by_email(email=email)
 #     if not user:
 #         raise HTTPException(
 #             status_code=404,

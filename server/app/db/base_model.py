@@ -4,26 +4,36 @@ from sqlalchemy.ext.declarative import DeclarativeMeta, declarative_base
 from . import deps
 
 from .session import Session
-from .manager import BaseManager
+from .crud import BaseCRUD
 
 
 class BaseModelMeta(DeclarativeMeta):
     def __new__(cls, name, bases, attrs):
         # if attrs.get('__annotations__'):
-        #     attrs['__annotations__']['objects'] = attrs['Manager']
+        #     attrs['__annotations__']['crud'] = attrs['CRUD']
 
         if attrs.get('__tablename__', None) is None and not attrs.get('__abstract__', False):
             attrs['__tablename__'] = name.lower()
-        return super().__new__(cls, name, bases, attrs)
 
-    @property
-    def objects(cls):
-        return cls.Manager(cls, deps.get_db.from_context())
+        obj = super().__new__(cls, name, bases, attrs)
+
+        if not attrs.get('__abstract__', False):
+            ann = attrs.get('__annotations__', {})
+            for key, attr in ann.items():
+                if isinstance(attr, type) and issubclass(attr, BaseCRUD):
+                    setattr(obj, key, attr(obj))
+
+        return obj
+
 
 AbstractBaseModel = declarative_base(metaclass=BaseModelMeta)
 
 
-class Base(AbstractBaseModel):
+class CRUD(BaseCRUD['BaseModel']):
+    pass
+
+
+class BaseModel(AbstractBaseModel):
     __abstract__ = True
 
     id: Any
@@ -38,8 +48,3 @@ class Base(AbstractBaseModel):
     async def save(self, db: Session) -> None:
         await db.flush()
         await db.refresh(self)
-
-    class Manager(BaseManager['Base']):
-        pass
-
-    objects: Manager

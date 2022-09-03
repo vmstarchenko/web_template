@@ -1,3 +1,5 @@
+from typing import Any
+
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker, Session as OrmSession
 # from sqlalchemy.pool import StaticPool
@@ -13,7 +15,7 @@ GlobalSession: SessionMeta = sessionmaker(  # type: ignore
 )
 
 
-def configure(uri, Session: SessionMeta | None=None):  # pylint: disable=redefined-outer-name
+def configure(uri: str, Session: SessionMeta | None=None) -> dict[str, Any]:  # pylint: disable=redefined-outer-name
     Session = Session or GlobalSession
     engine = create_async_engine(
         uri,

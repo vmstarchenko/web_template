@@ -1,17 +1,17 @@
 version: '3.8'
 services:
-  db:
-    build:
-      context: ./etc/docker/mysql_db
-    # restart: always
-    volumes:
-      - ./var/volumes/db:/home/db/data
-    environment:
-      MYSQL_DATABASE: dev_db
-      MYSQL_USER: user
-      MYSQL_ROOT_PASSWORD: example
-      MYSQL_PASSWORD: example
-    user: "${USER_ID}:${GROUP_ID}"
+  # Uncomment database service or mount db volume to web for sqlite
+  # db:
+  #   build:
+  #     context: ./etc/docker/mysql_db
+  #   volumes:
+  #     - ./var/volumes/db:/home/db/data
+  #   environment:
+  #     MYSQL_DATABASE: dev_db
+  #     MYSQL_USER: user
+  #     MYSQL_ROOT_PASSWORD: example
+  #     MYSQL_PASSWORD: example
+  #   user: "${USER_ID}:${GROUP_ID}"
 
   web:
     build:
@@ -22,19 +22,15 @@ services:
         UID: ${USER_ID}
     volumes:
       - .:/home/web
-      - ./app/static:/var/www/static
+      # - ./app/static:/var/www/static
       - ./var/volumes/media:/var/www/media
-      - ./var/volumes/db:/var/db
+      - ./var/volumes/db:/var/db  # volume for sqlite
     command: [
-      # "echo", "1",
       "uvicorn", "app.main:app", "--host", "0.0.0.0", "--reload", "--reload-dir=app", "--reload-delay=1"
     ]
     environment:
       - FASTAPI_DOTENV=etc/env/dev
-    # env_file:
-    #   - etc/env/.dev
-    depends_on:
-      - db  # : {'condition': 'service_healthy'}
+    # depends_on: ["db"]
 
   nginx:
     build: ./etc/docker/nginx

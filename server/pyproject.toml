@@ -40,6 +40,11 @@ build-backend = "setuptools.build_meta"
 [tool.mypy]
 exclude = "venv"
 plugins = ["pydantic.mypy", "sqlalchemy.ext.mypy.plugin"]
+# disallow_untyped_defs = true
+# disallow_untyped_calls = true
+# warn_unused_ignores = true
+# warn_unreachable = true
+strict = true
 
 [tool.setuptools]
 packages = ["app"]
@@ -48,7 +53,7 @@ packages = ["app"]
 asyncio_mode = "auto"
 disable_test_id_escaping_and_forfeit_all_rights_to_community_support = true
 addopts = [
-    "--pylint",
+    # "--pylint",
     "--mypy",
     "--cov=app", "--cov-report=xml", "--no-cov-on-fail",
     # "-k", "test_testname",
