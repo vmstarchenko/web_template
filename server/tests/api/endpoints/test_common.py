@@ -1,7 +1,8 @@
 import pytest
+from httpx import AsyncClient as Client
 
 
-async def test_info(client):
+async def test_info(client: Client) -> None:
     resp = await client.get('/info/')
     assert resp.status_code == 200, resp
     res = resp.json()

@@ -6,7 +6,7 @@ from fastapi.openapi.docs import (
     get_swagger_ui_html,
     get_swagger_ui_oauth2_redirect_html,
 )
-from starlette.responses import RedirectResponse
+from starlette.responses import RedirectResponse, HTMLResponse
 
 from app.core import settings
 
@@ -21,12 +21,12 @@ REDOC_URL = '/redoc'
 
 
 @router.get('/')
-async def index():
+async def index() -> RedirectResponse:
     return RedirectResponse('/info/')
 
 
 @router.get('/info/')
-async def info(request: Request):
+async def info(request: Request) -> dict[str, str]:
     return {
         'info': 'Hello! This is api info page.',
         'docs_url': str(request.url.replace(path=DOCS_URL)),
@@ -35,7 +35,7 @@ async def info(request: Request):
 
 
 @router.get(DOCS_URL, include_in_schema=False)
-async def custom_swagger_ui_html():
+async def custom_swagger_ui_html() -> HTMLResponse:
     return get_swagger_ui_html(
         openapi_url=settings.SCHEMA_URL,
         title=f'{settings.PROJECT_NAME} - Swagger UI',
@@ -47,12 +47,12 @@ async def custom_swagger_ui_html():
 
 
 @router.get(DOCS_OAUTH_REDIRECT_URL, include_in_schema=False)
-async def swagger_ui_redirect():
+async def swagger_ui_redirect() -> HTMLResponse:
     return get_swagger_ui_oauth2_redirect_html()
 
 
 @router.get(REDOC_URL, include_in_schema=False)
-async def redoc_html():
+async def redoc_html() -> HTMLResponse:
     return get_redoc_html(
         openapi_url=settings.SCHEMA_URL,
         title=f'{settings.PROJECT_NAME} - ReDoc',

@@ -7,7 +7,7 @@ from app.core import settings
 
 async def test_get_access_token(client: Client, user: User) -> None:
     login_data = {
-        "username": "username",
+        "username": "user",
         "password": "password"
     }
     resp = await client.post(settings.TOKEN_URL, data=login_data)
@@ -17,16 +17,16 @@ async def test_get_access_token(client: Client, user: User) -> None:
     assert res["access_token"], res
 
 
-async def test_use_token(client: Client, user) -> None:
-    resp = await client.get('/api/user/me/', headers=user.headers)
+async def test_use_token(client: Client, user_headers: dict[str, str]) -> None:
+    resp = await client.get('/api/user/me/', headers=user_headers)
     assert resp.status_code == 200
     res = resp.json()
     assert "email" in res, res
 
 
-async def test_use_invalid_token(client: Client, user) -> None:
+async def test_use_invalid_token(client: Client, user_headers: dict[str, str]) -> None:
     resp = await client.get('/api/user/me/', headers={
-        'Authorization': user.headers['Authorization'] + '_invalid',
+        'Authorization': user_headers['Authorization'] + '_invalid',
     })
     assert resp.status_code == 401
     res = resp.json()
@@ -41,14 +41,14 @@ async def test_use_invalid_token(client: Client, user) -> None:
     assert res == {'detail': 'Could not validate credentials'}, res
 
 
-async def test_missing_token(client: Client, user) -> None:
+async def test_missing_token(client: Client, user: User) -> None:
     resp = await client.get('/api/user/me/')
     assert resp.status_code == 401
     res = resp.json()
     assert res == {'detail': 'Not authenticated'}, res
 
-async def test_user_list(client: Client, superuser) -> None:
-    resp = await client.get('/api/user/', headers=superuser.headers)
+async def test_user_list(client: Client, superuser_headers: dict[str, str]) -> None:
+    resp = await client.get('/api/user/', headers=superuser_headers)
     assert resp.status_code == 200
     res = resp.json()
     assert res == [

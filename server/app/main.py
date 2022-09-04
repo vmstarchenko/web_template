@@ -31,7 +31,7 @@ app.include_router(router)
 app.mount(settings.MEDIA_URL, StaticFiles(directory=settings.MEDIA_ROOT), name='media')
 
 @app.on_event('startup')
-def startup_event():
+def startup_event() -> None:
     if settings.ENV_TYPE == 'test':
         return
 

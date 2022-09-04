@@ -1,21 +1,19 @@
 from typing import Any
 from sqlalchemy.ext.declarative import DeclarativeMeta, declarative_base
 
-from . import deps
-
 from .session import Session
 from .crud import BaseCRUD
 
 
 class BaseModelMeta(DeclarativeMeta):
-    def __new__(cls, name, bases, attrs):
-        # if attrs.get('__annotations__'):
-        #     attrs['__annotations__']['crud'] = attrs['CRUD']
+    def __new__(
+            cls: type['BaseModelMeta'], name: str, bases: tuple[type, ...], attrs: dict[str, Any],
+            ) -> 'BaseModelMeta':
 
         if attrs.get('__tablename__', None) is None and not attrs.get('__abstract__', False):
             attrs['__tablename__'] = name.lower()
 
-        obj = super().__new__(cls, name, bases, attrs)
+        obj: BaseModelMeta = super().__new__(cls, name, bases, attrs)
 
         if not attrs.get('__abstract__', False):
             ann = attrs.get('__annotations__', {})

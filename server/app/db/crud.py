@@ -1,16 +1,17 @@
-from typing import TypeVar, Generic, Any
+from typing import TypeVar, Generic, Any, cast
 from sqlalchemy import select
+from sqlalchemy.sql import Executable
 from sqlalchemy.exc import NoResultFound
 from fastapi.encoders import jsonable_encoder
 
-from .session import Session, SessionMeta
+from .session import Session
 
 T = TypeVar('T', bound='BaseModel')
 _DEFAULT = object()
 
 
 class BaseCRUD(Generic[T]):
-    def __init__(self, Model: 'BaseModelMeta'):  # pylint: disable=invalid-name
+    def __init__(self, Model: type[T]):  # pylint: disable=invalid-name
         self.Model = Model  # pylint: disable=invalid-name
 
     async def create(self, db: Session, *, save_: bool = True, **kwargs: Any) -> T:
@@ -20,7 +21,7 @@ class BaseCRUD(Generic[T]):
             await obj.save(db)
         return obj
 
-    def _get_query(self, *conditions, **kv_conditions):
+    def _get_query(self, *conditions: Any, **kv_conditions: Any) -> Executable:
         query = select(self.Model)
         if conditions:
             query = query.filter(*conditions)
@@ -29,10 +30,14 @@ class BaseCRUD(Generic[T]):
         return query
 
     async def get(self, db: Session, *conditions: Any, **kv_conditions: Any) -> T:
-        return (await db.execute(self._get_query(*conditions, **kv_conditions))).scalar_one()
+        return cast(  # TODO: remove cast
+            T,
+            (await db.execute(self._get_query(*conditions, **kv_conditions))).scalar_one(),
+        )
 
     async def get_or_create(
-            self, db: Session, *conditions, save_=True, defaults_=None, **kv_conditions,
+            self, db: Session, *conditions: Any, save_: bool=True,
+            defaults_: dict[str, Any] | None = None, **kv_conditions: Any,
             ) -> tuple[bool, T]:
         try:
             created, obj = False, await self.get(*conditions, save_=save_, **kv_conditions)
@@ -40,11 +45,13 @@ class BaseCRUD(Generic[T]):
             created, obj = True, await self.create(**(defaults_ or {}), save_=save_)
         return created, obj
 
-    async def update(self, db: Session, obj: T, obj_in=None, save_=True, **kwargs) -> T:
-        if isinstance(obj, dict):
-            kwargs.update(obj_in)
-        else:
-            kwargs.update(obj_in.dict(exclude_unset=True))
+    async def update(
+            self, db: Session, obj: T, obj_in: Any=None, save_: bool=True, **kwargs: Any
+            ) -> T:
+        # if isinstance(obj, dict):
+        #     kwargs.update(obj_in)
+        # else:
+        kwargs.update(obj_in.dict(exclude_unset=True))
 
         obj_data = jsonable_encoder(obj)
         for field in obj_data:
@@ -76,8 +83,8 @@ class BaseCRUD(Generic[T]):
     #     return db.query(self.Model).filter(*condition)
 
 
-    async def remove(self, db: Session, *conditions, **kv_conditions):
-        await db.execute(self._get_query(*conditions, **kv_conditions).delete())
+    # async def remove(self, db: Session, *conditions: Any, **kv_conditions: Any) -> None:
+    #     await db.execute(self._get_query(*conditions, **kv_conditions).delete())
 
 
 from .base_model import BaseModel, BaseModelMeta  # pylint: disable=unused-import,wrong-import-position,cyclic-import

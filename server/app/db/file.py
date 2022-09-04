@@ -1,3 +1,4 @@
+DBG = """
 import functools
 import os
 
@@ -88,3 +89,4 @@ def setup_media():
     for path in MEDIA_DIRS:
         root = os.path.join(settings.MEDIA_ROOT, path)
         os.makedirs(root, exist_ok=True)
+"""

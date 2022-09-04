@@ -2,12 +2,12 @@ from fastapi import Depends, HTTPException, status  # , Header
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, ExpiredSignatureError
 from pydantic import ValidationError
-from sqlalchemy.orm import Session
 from sqlalchemy.exc import NoResultFound
 
 from app.db.deps import get_db, DbDependency
+from app.db import Session
 from app.core import settings
-from app.models.token import Token, User
+from app.models import Token, User
 
 __all__ = ('get_db', 'DbDependency')
 

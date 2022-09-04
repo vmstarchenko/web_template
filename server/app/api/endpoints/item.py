@@ -9,20 +9,21 @@ router = APIRouter()
 
 
 @router.post('/')
-async def item_create(*, db: Session = Depends(get_db)):
+async def item_create(*, db: Session = Depends(get_db)) -> Item:
     return await Item.crud.create(db)
 
 
 @router.get('/{id}/')
-async def item_get(*, id: int, db: Session = Depends(get_db)):
-    experiment()
+async def item_get(*, id: int, db: Session = Depends(get_db)) -> Item:
+    # experiment()
     return await Item.crud.get(db, id=id)
 
 
-
-def exp_f(obj_in: int):
+DBG = '''
+def exp_f(obj_in: int) -> None:
     print(obj_in, type(obj_in))
 
 
-def experiment():
+def experiment() -> None:
     exp_f('a')
+'''

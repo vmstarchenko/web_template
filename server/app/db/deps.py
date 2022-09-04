@@ -10,10 +10,6 @@ class DbDependency:
     def __init__(self, Session: SessionMeta | None = None):
         self.Session = Session
 
-    @staticmethod
-    def from_context():
-        return _local_db.get()
-
     async def __call__(self) -> AsyncIterable[Session_]:
         Session = self.Session or GlobalSession
         async with Session() as db:

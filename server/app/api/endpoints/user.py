@@ -28,7 +28,7 @@ async def user_list(
     skip: int = 0,
     limit: int = 100,
     current_user: models.User = Depends(deps.get_current_superuser),
-):
+) -> list[models.User]:
     return list((
         await db.scalars(select(models.User).order_by(models.User.id).offset(skip).limit(limit))
     ))
