@@ -54,7 +54,7 @@ addopts = [
     "--mypy",
     "--cov=app", "--cov-report=xml", "--no-cov-on-fail",
     # "-k", "test_testname",
-    # "-k", "test_use_token",
+    # "-k", "test_item_get_missing",
     "-r", "A",
     # "-vv",
     # "--showlocals",

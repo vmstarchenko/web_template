@@ -16,7 +16,7 @@ async def item_create(*, db: Session = Depends(get_db)) -> Item:
 @router.get('/{id}/')
 async def item_get(*, id: int, db: Session = Depends(get_db)) -> Item:
     # experiment()
-    return await Item.crud.get(db, id=id)
+    return await Item.crud.get_or_404(db, id=id)
 
 
 DBG = '''

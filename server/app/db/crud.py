@@ -2,6 +2,7 @@ from typing import TypeVar, Generic, Any, cast
 from sqlalchemy import select
 from sqlalchemy.sql import Executable
 from sqlalchemy.exc import NoResultFound
+from fastapi import HTTPException
 from fastapi.encoders import jsonable_encoder
 
 from .session import Session
@@ -14,36 +15,46 @@ class BaseCRUD(Generic[T]):
     def __init__(self, Model: type[T]):  # pylint: disable=invalid-name
         self.Model = Model  # pylint: disable=invalid-name
 
-    async def create(self, db: Session, *, save_: bool = True, **kwargs: Any) -> T:
-        obj = self.Model(**kwargs)
+    async def create(self, db: Session, *, save_: bool = True, **attrs: Any) -> T:
+        obj = self.Model(**attrs)
         db.add(obj)
         if save_:
             await obj.save(db)
         return obj
 
-    def _get_query(self, *conditions: Any, **kv_conditions: Any) -> Executable:
+    def get_query(self, **kv_conditions: Any) -> Executable:
         query = select(self.Model)
-        if conditions:
-            query = query.filter(*conditions)
         if kv_conditions:
             query = query.filter_by(**kv_conditions)
         return query
 
-    async def get(self, db: Session, *conditions: Any, **kv_conditions: Any) -> T:
+    async def get(self, db: Session, **kv_conditions: Any) -> T:
         return cast(  # TODO: remove cast
             T,
-            (await db.execute(self._get_query(*conditions, **kv_conditions))).scalar_one(),
+            (await db.execute(self.get_query(**kv_conditions))).scalar_one(),
         )
 
     async def get_or_create(
-            self, db: Session, *conditions: Any, save_: bool=True,
+            self, db: Session, save_: bool=True,
             defaults_: dict[str, Any] | None = None, **kv_conditions: Any,
             ) -> tuple[bool, T]:
         try:
-            created, obj = False, await self.get(*conditions, save_=save_, **kv_conditions)
+            created, obj = False, await self.get(save_=save_, **kv_conditions)
         except NoResultFound:
             created, obj = True, await self.create(**(defaults_ or {}), save_=save_)
         return created, obj
+
+    async def get_or_404(self, db: Session, detail_: str | None = None, **kv_conditions: Any) -> T:
+        try:
+            return await self.get(db, **kv_conditions)
+        except NoResultFound as e:
+            raise HTTPException(status_code=404, detail=detail_) from e
+
+    async def get_or_none(self, db: Session, **kv_conditions: Any) -> T | None:
+        try:
+            return await self.get(db, **kv_conditions)
+        except NoResultFound:
+            return None
 
     async def update(
             self, db: Session, obj: T, obj_in: Any=None, save_: bool=True, **kwargs: Any
@@ -84,7 +95,7 @@ class BaseCRUD(Generic[T]):
 
 
     # async def remove(self, db: Session, *conditions: Any, **kv_conditions: Any) -> None:
-    #     await db.execute(self._get_query(*conditions, **kv_conditions).delete())
+    #     await db.execute(self.get_query(*conditions, **kv_conditions).delete())
 
 
 from .base_model import BaseModel, BaseModelMeta  # pylint: disable=unused-import,wrong-import-position,cyclic-import
