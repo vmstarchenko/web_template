@@ -7,7 +7,7 @@ async def test_info(client: Client) -> None:
     assert resp.status_code == 200, resp
     res = resp.json()
     assert res == {
-        'docs_url': 'http://test/docs',
+        'docs_url': 'http://testhost.example/docs',
         'info': 'Hello! This is api info page.',
-        'redoc_url': 'http://test/redoc',
+        'redoc_url': 'http://testhost.example/redoc',
     }

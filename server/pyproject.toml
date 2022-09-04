@@ -2,24 +2,29 @@
 name = "app"
 version = "0.0.0"
 dependencies = [
+    "Jinja2",
+    "emails",
     "fastapi",
     "passlib",
-    "python-jose",
-    "python-multipart",
     "pydantic",
     "pydantic[dotenv]",
     "pydantic[email]",
+    "python-jose",
+    "python-multipart",
     "pyyaml",
     "sqlalchemy",
     "sqlalchemy[asyncio]",
-    # "aiosqlite",
-    # "asyncpg",
-    "asyncmy", "mysqlclient", "cryptography",
     "uvicorn",
+
+    # DB
+    "asyncmy", "mysqlclient", "cryptography",  # MySQL
+    # "aiosqlite", # sqlite
+    # "asyncpg", # postgres
 ]
 
 [project.optional-dependencies]
 dev = [
+    "aiosmtpd",
     "aiosqlite",
     "alembic",
     "httpx",
@@ -50,11 +55,11 @@ packages = ["app"]
 asyncio_mode = "auto"
 disable_test_id_escaping_and_forfeit_all_rights_to_community_support = true
 addopts = [
-    "--pylint",
-    "--mypy",
+    # "--pylint",
+    # "--mypy",
     "--cov=app", "--cov-report=xml", "--no-cov-on-fail",
     # "-k", "test_testname",
-    # "-k", "test_item_get_missing",
+    # "-k", "test_user_register",
     "-r", "A",
     # "-vv",
     # "--showlocals",

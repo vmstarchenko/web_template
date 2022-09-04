@@ -62,7 +62,7 @@ class BaseCRUD(Generic[T]):
         # if isinstance(obj, dict):
         #     kwargs.update(obj_in)
         # else:
-        kwargs.update(obj_in.dict(exclude_unset=True))
+        # kwargs.update(obj_in.dict(exclude_unset=True))
 
         obj_data = jsonable_encoder(obj)
         for field in obj_data:

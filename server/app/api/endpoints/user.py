@@ -1,15 +1,18 @@
 from typing import Any, List
+from urllib.parse import ParseResult
 
-from fastapi import APIRouter, Body, Depends, HTTPException
+from fastapi import APIRouter, Body, Depends, HTTPException, Request
 from fastapi.encoders import jsonable_encoder
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic.networks import EmailStr
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy import select
 
-from app import models, schemas, deps
+from app import schemas, deps
+from app.models import User, Token
 from app.db import Session
 from app.core import settings
+from app.utils import send_new_account_email
 
 # from app.utils import send_new_account_email
 
@@ -27,10 +30,10 @@ async def user_list(
     db: Session = Depends(deps.get_db),
     skip: int = 0,
     limit: int = 100,
-    current_user: models.User = Depends(deps.get_current_superuser),
-) -> list[models.User]:
+    current_user: User = Depends(deps.get_current_superuser),
+) -> list[User]:
     return list((
-        await db.scalars(select(models.User).order_by(models.User.id).offset(skip).limit(limit))
+        await db.scalars(select(User).order_by(User.id).offset(skip).limit(limit))
     ))
 
 
@@ -39,12 +42,12 @@ async def user_create(
     *,
     db: Session = Depends(deps.get_db),
     user_in: schemas.UserCreate,
-    current_user: models.User = Depends(deps.get_current_superuser),
+    current_user: User = Depends(deps.get_current_superuser),
 ) -> Any:
     """
     Create new user.
     """
-    manager = models.User.crud
+    manager = User.crud
     user = await manager.get(db, email=user_in.email)
     if user:
         raise HTTPException(
@@ -66,7 +69,7 @@ def user_me_update(
     password: str = Body(None),
     full_name: str = Body(None),
     email: EmailStr = Body(None),
-    current_user: models.User = Depends(deps.get_current_user),
+    current_user: User = Depends(deps.get_current_user),
 ) -> Any:
     """
     Update own user.
@@ -79,13 +82,13 @@ def user_me_update(
         user_in.full_name = full_name
     if email is not None:
         user_in.email = email
-    user = models.User.crud.update(db, obj=current_user, obj_in=user_in)
+    user = User.crud.update(db, obj=current_user, obj_in=user_in)
     return user
 
 
 @router.get("/me/", response_model=schemas.User)
 def user_me(
-    current_user: models.User = Depends(deps.get_current_user),
+    current_user: User = Depends(deps.get_current_user),
 ) -> Any:
     """
     Get current user.
@@ -97,10 +100,11 @@ def user_me(
 async def user_register(
     *,
     db: Session = Depends(deps.get_db),
+    request: Request,
     password: str = Body(...),
     email: EmailStr = Body(...),
-    full_name: str = Body(None),
-) -> Any:
+    username: str = Body(...),
+) -> User:
     """
     Create new user without the need to be logged in.
     """
@@ -109,58 +113,30 @@ async def user_register(
             status_code=403,
             detail="Open user registration is forbidden on this server",
         )
-    manager = models.User.crud
-    user = await manager.get(db, email=email)
+    user = await User.crud.get_or_none(db, email=email)
     if user:
         raise HTTPException(
             status_code=400,
             detail="The user with this username already exists in the system",
         )
-    user_in = schemas.UserCreate(password=password, email=email, full_name=full_name)
-    user = await manager.create(db, obj_in=user_in)
+
+    user = await User.crud.create(db, password=password, email=email, username=username)
+    url = request.url
+    link = f'{url.scheme}://{url.hostname}/api/user/activate/{user.id}/'
+    send_new_account_email(link=link, email=user.email, username=user.username)
     return user
 
 
-@router.get("/{user_id}/", response_model=schemas.User)
-async def user_detail(
-    user_id: int,
-    current_user: models.User = Depends(deps.get_current_user),
-    db: Session = Depends(deps.get_db),
-) -> Any:
-    """
-    Get a specific user by id.
-    """
-    user = await models.User.crud.get(db, id=user_id)
-    if user == current_user:
-        return user
-    if not user.is_superuser:
-        raise HTTPException(
-            status_code=400, detail="The user doesn't have enough privileges"
-        )
-    return user
-
-
-@router.put("/{user_id}/", response_model=schemas.User)
-async def user_update(
+@router.get("/activate/{user_id}/", response_model=schemas.User)
+async def user_activate(
     *,
     db: Session = Depends(deps.get_db),
     user_id: int,
-    user_in: schemas.UserUpdate,
-    current_user: models.User = Depends(deps.get_current_superuser),
 ) -> Any:
-    """
-    Update a user.
-    """
-    manager = models.User.crud
-    user = await manager.get(db, id=user_id)
-    if not user:
-        raise HTTPException(
-            status_code=404,
-            detail="The user with this username does not exist in the system",
-        )
-    user = await manager.update(db, obj=user, obj_in=user_in)
+    # TODO: use signed token
+    user = await User.crud.get_or_404(db, id=user_id)
+    await user.crud.update(db, user, is_active=True)
     return user
-
 
 @router.post("/login/")
 async def user_login(
@@ -171,7 +147,7 @@ async def user_login(
     OAuth2 compatible token login, get an access token for future requests
     """
     try:
-        user = await models.User.crud.authenticate(
+        user = await User.crud.authenticate(
             db,
             username=form_data.username, password=form_data.password
         )
@@ -181,7 +157,7 @@ async def user_login(
     if not user.is_active:
         raise HTTPException(status_code=400, detail="Inactive user")
 
-    token = await models.Token.crud.create(db, user_id=user.id)
+    token = await Token.crud.create(db, user_id=user.id)
     jwt_token = token.encode()
     return {
         "access_token": jwt_token,
@@ -194,7 +170,7 @@ async def user_login(
 #     """
 #     Password Recovery
 #     """
-#     user = models.User.crud.get_by_email(email=email)
+#     user = User.crud.get_by_email(email=email)
 #     if not user:
 #         raise HTTPException(
 #             status_code=404,
@@ -217,7 +193,7 @@ async def user_login(
 #     email = verify_password_reset_token(token)
 #     if not email:
 #         raise HTTPException(status_code=400, detail="Invalid token")
-#     user = models.User.crud.get_by_email(email=email)
+#     user = User.crud.get_by_email(email=email)
 #     if not user:
 #         raise HTTPException(
 #             status_code=404,
@@ -230,3 +206,40 @@ async def user_login(
 #     db.add(user)
 #     db.commit()
 #     return {"msg": "Password updated successfully"}
+
+
+@router.get("/{user_id}/", response_model=schemas.User)
+async def user_detail(
+    user_id: int,
+    current_user: User = Depends(deps.get_current_user),
+    db: Session = Depends(deps.get_db),
+) -> Any:
+    """
+    Get a specific user by id.
+    """
+    user = await User.crud.get(db, id=user_id)
+    if user == current_user:
+        return user
+    if not user.is_superuser:
+        raise HTTPException(
+            status_code=400, detail="The user doesn't have enough privileges"
+        )
+    return user
+
+
+@router.put("/{user_id}/", response_model=schemas.User)
+async def user_update(
+    *,
+    db: Session = Depends(deps.get_db),
+    user_id: int,
+    user_in: schemas.UserUpdate,
+    current_user: User = Depends(deps.get_current_superuser),
+) -> Any:
+    """
+    Update a user.
+    """
+    user = await User.crud.get_or_404(db, id=user_id)
+    user = await User.crud.update(db, obj=user, obj_in=user_in)
+    return user
+
+

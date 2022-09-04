@@ -52,5 +52,28 @@ async def test_user_list(client: Client, superuser_headers: dict[str, str]) -> N
     assert resp.status_code == 200
     res = resp.json()
     assert res == [
-        {'email': 'superuser@test.example', 'is_active': True, 'is_superuser': True, 'full_name': None, 'id': 1}
+        {'email': 'superuser@test.example', 'is_active': True, 'is_superuser': True, 'id': 1}
     ], res
+
+# TODO: enable this test
+# async def test_user_get_with_invalid_id(client: Client) -> None:
+#     resp = await client.get('/api/user/abacaba/')
+#     assert resp.status_code == 200, res
+#     assert res == {}, res
+
+async def test_user_register(client: Client, smtp_server) -> None:
+    resp = await client.post('/api/user/register/', json={'password': 'pass', 'email': 'new@test.example', 'username': 'new'})
+    assert resp.status_code == 200, res
+    res = resp.json()
+    assert res == {'email': 'new@test.example', 'id': 1, 'is_active': False, 'is_superuser': False}, res
+
+    assert len(smtp_server.mails) == 1, smtp_server.mails
+    mail = smtp_server.mails[0]
+    assert len(mail.links) == 1, mail.links
+
+    resp = await client.get(mail.links[0])
+    res = resp.json()
+    assert resp.status_code == 200, res
+    assert res == {'email': 'new@test.example', 'id': 1, 'is_active': True, 'is_superuser': False}, res
+
+
