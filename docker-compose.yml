@@ -15,21 +15,23 @@ services:
 
   web:
     build:
-      context: .
-      dockerfile: ./etc/docker/web/Dockerfile
+      context: ./etc/docker/web
       args:
         GID: ${GROUP_ID}
         UID: ${USER_ID}
+        UNAME: ${SERVER_USER}
     volumes:
-      - .:/home/web
-      # - ./app/static:/var/www/static
+      - ./var/volumes/server_home:/home/${SERVER_USER}
+      - ./server:/home/${SERVER_USER}/app
+      - ./etc:/home/${SERVER_USER}/etc
+      - ./server/app/static:/var/www/static
       - ./var/volumes/media:/var/www/media
       - ./var/volumes/db:/var/db  # volume for sqlite
     command: [
       "uvicorn", "app.main:app", "--host", "0.0.0.0", "--reload", "--reload-dir=app", "--reload-delay=1"
     ]
     environment:
-      - FASTAPI_DOTENV=etc/env/dev
+      - FASTAPI_DOTENV=/home/${SERVER_USER}/etc/env/dev
     # depends_on: ["db"]
 
   nginx:
@@ -37,5 +39,5 @@ services:
     ports: ["8080:8080"]
     user: ${USER_ID}
     volumes:
-      - ./app/static:/var/www/static
+    - ./app/static:/var/www/static
     depends_on: ["web"]

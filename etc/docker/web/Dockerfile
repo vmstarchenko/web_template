@@ -5,12 +5,14 @@ ARG \
     UID=1000 \
     GID=1000
 
+# For Mysql: default-libmysqlclient-dev
+# for some libs: gcc 
 RUN set -ex \
     && apt-get update \
     && apt-get install \
-        curl default-libmysqlclient-dev gcc \
-        -y
-    # && rm -rf /var/lib/apt/lists/*
+        curl \
+        -y \
+    && rm -rf /var/lib/apt/lists/*
 
 RUN set -ex \
     && groupadd -g $GID -o $UNAME \
@@ -23,9 +25,9 @@ USER $UNAME
 ENV \
     PYTHONUNBUFFERED=1 \
     VIRTUAL_ENV=/home/$UNAME/venv \
-    PATH=/home/$UNAME/venv/bin:$PATH \
+    PATH=/home/$UNAME/venv/bin:/home/$UNAME/etc/scripts:$PATH \
     TERM=xterm-256color
 
 EXPOSE 8000
 
-WORKDIR /home/$UNAME
+WORKDIR /home/$UNAME/app

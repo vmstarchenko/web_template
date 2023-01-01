@@ -17,8 +17,8 @@ dependencies = [
     "uvicorn",
 
     # DB
-    "asyncmy", "mysqlclient", "cryptography",  # MySQL
-    # "aiosqlite", # sqlite
+    # "asyncmy", "mysqlclient", "cryptography",  # MySQL
+    "aiosqlite", # sqlite
     # "asyncpg", # postgres
 ]
 
