@@ -16,13 +16,13 @@ reusable_oauth2 = OAuth2PasswordBearer(tokenUrl=settings.TOKEN_URL)
 
 
 
-async def get_current_token(
+def get_current_token(
     db: Session = Depends(get_db), jwt_token: str = Depends(reusable_oauth2),
     # user_agent: str | None = Header(None),
 ) -> Token:
     try:
         payload = Token.decode(jwt_token)
-        token = await Token.crud.load(db, payload)
+        token = Token.crud.load(db, payload)
     except ExpiredSignatureError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -37,11 +37,11 @@ async def get_current_token(
     return token
 
 
-async def get_current_user(token: Token = Depends(get_current_token)) -> User:
+def get_current_user(token: Token = Depends(get_current_token)) -> User:
     return token.user
 
 
-async def get_current_superuser(user: User = Depends(get_current_user)) -> User:
+def get_current_superuser(user: User = Depends(get_current_user)) -> User:
     if not user.is_superuser:
         raise HTTPException(
             status_code=400, detail="The user doesn't have enough privileges"

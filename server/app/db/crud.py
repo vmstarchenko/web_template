@@ -12,51 +12,51 @@ _DEFAULT = object()
 
 
 class BaseCRUD(Generic[T]):
-    def __init__(self, Model: type[T]):  # pylint: disable=invalid-name
-        self.Model = Model  # pylint: disable=invalid-name
+    def __init__(self, model: type[T]):  # pylint: disable=invalid-name
+        self.model = model  # pylint: disable=invalid-name
 
-    async def create(self, db: Session, *, save_: bool = True, **attrs: Any) -> T:
-        obj = self.Model(**attrs)
+    def create(self, db: Session, *, save_: bool = True, **attrs: Any) -> T:
+        obj = self.model(**attrs)
         db.add(obj)
         if save_:
-            await obj.save(db)
+            obj.save(db)
         return obj
 
     def get_query(self, **kv_conditions: Any) -> Executable:
-        query = select(self.Model)
+        query = select(self.model)
         if kv_conditions:
             query = query.filter_by(**kv_conditions)
         return query
 
-    async def get(self, db: Session, **kv_conditions: Any) -> T:
+    def get(self, db: Session, **kv_conditions: Any) -> T:
         return cast(  # TODO: remove cast
             T,
-            (await db.execute(self.get_query(**kv_conditions))).scalar_one(),
+            (db.execute(self.get_query(**kv_conditions))).scalar_one(),
         )
 
-    async def get_or_create(
+    def get_or_create(
             self, db: Session, save_: bool=True,
             defaults_: dict[str, Any] | None = None, **kv_conditions: Any,
             ) -> tuple[bool, T]:
         try:
-            created, obj = False, await self.get(save_=save_, **kv_conditions)
+            created, obj = False, self.get(save_=save_, **kv_conditions)
         except NoResultFound:
-            created, obj = True, await self.create(**(defaults_ or {}), save_=save_)
+            created, obj = True, self.create(**(defaults_ or {}), save_=save_)
         return created, obj
 
-    async def get_or_404(self, db: Session, detail_: str | None = None, **kv_conditions: Any) -> T:
+    def get_or_404(self, db: Session, detail_: str | None = None, **kv_conditions: Any) -> T:
         try:
-            return await self.get(db, **kv_conditions)
+            return self.get(db, **kv_conditions)
         except NoResultFound as e:
             raise HTTPException(status_code=404, detail=detail_) from e
 
-    async def get_or_none(self, db: Session, **kv_conditions: Any) -> T | None:
+    def get_or_none(self, db: Session, **kv_conditions: Any) -> T | None:
         try:
-            return await self.get(db, **kv_conditions)
+            return self.get(db, **kv_conditions)
         except NoResultFound:
             return None
 
-    async def update(
+    def update(
             self, db: Session, obj: T, obj_in: Any=None, save_: bool=True, **kwargs: Any
             ) -> T:
         # if isinstance(obj, dict):
@@ -72,30 +72,30 @@ class BaseCRUD(Generic[T]):
 
         db.add(obj)
         if save_:
-            await obj.save(db)
+            obj.save(db)
         return obj
 
     # def get_multi_by_user(self, *, user_id: int, skip: int = 0, limit: int = 100) -> list[T]:
-    #     return await db.execute(
-    #         select(self.Model)
-    #         .filter(self.Model.user_id == user_id)
+    #     return db.execute(
+    #         select(self.model)
+    #         .filter(self.model.user_id == user_id)
     #         .offset(skip)
     #         .limit(limit)
     #         .all()
     #     )
 
     # def get_multi(self, *, skip: int = 0, limit: int = 100) -> list[T]:
-    #     return db.query(self.Model).offset(skip).limit(limit).all()
+    #     return db.query(self.model).offset(skip).limit(limit).all()
 
     # def get_all(self, *condition) -> list[T]:
-    #     return db.query(self.Model).filter(*condition).all()
+    #     return db.query(self.model).filter(*condition).all()
 
     # def search(self, *condition) -> list[T]:
-    #     return db.query(self.Model).filter(*condition)
+    #     return db.query(self.model).filter(*condition)
 
 
-    # async def remove(self, db: Session, *conditions: Any, **kv_conditions: Any) -> None:
-    #     await db.execute(self.get_query(*conditions, **kv_conditions).delete())
+    # def remove(self, db: Session, *conditions: Any, **kv_conditions: Any) -> None:
+    #     db.execute(self.get_query(*conditions, **kv_conditions).delete())
 
 
-from .base_model import BaseModel, BaseModelMeta  # pylint: disable=unused-import,wrong-import-position,cyclic-import
+from .base_model import BaseModel # pylint: disable=unused-import,wrong-import-position,cyclic-import

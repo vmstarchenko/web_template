@@ -21,12 +21,12 @@ REDOC_URL = '/redoc'
 
 
 @router.get('/')
-async def index() -> RedirectResponse:
+def index() -> RedirectResponse:
     return RedirectResponse('/info/')
 
 
 @router.get('/info/')
-async def info(request: Request) -> dict[str, str]:
+def info(request: Request) -> dict[str, str]:
     return {
         'info': 'Hello! This is api info page.',
         'docs_url': str(request.url.replace(path=DOCS_URL)),
@@ -35,7 +35,7 @@ async def info(request: Request) -> dict[str, str]:
 
 
 @router.get(DOCS_URL, include_in_schema=False)
-async def custom_swagger_ui_html() -> HTMLResponse:
+def custom_swagger_ui_html() -> HTMLResponse:
     return get_swagger_ui_html(
         openapi_url=settings.SCHEMA_URL,
         title=f'{settings.PROJECT_NAME} - Swagger UI',
@@ -47,12 +47,12 @@ async def custom_swagger_ui_html() -> HTMLResponse:
 
 
 @router.get(DOCS_OAUTH_REDIRECT_URL, include_in_schema=False)
-async def swagger_ui_redirect() -> HTMLResponse:
+def swagger_ui_redirect() -> HTMLResponse:
     return get_swagger_ui_oauth2_redirect_html()
 
 
 @router.get(REDOC_URL, include_in_schema=False)
-async def redoc_html() -> HTMLResponse:
+def redoc_html() -> HTMLResponse:
     return get_redoc_html(
         openapi_url=settings.SCHEMA_URL,
         title=f'{settings.PROJECT_NAME} - ReDoc',

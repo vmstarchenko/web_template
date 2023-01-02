@@ -2,6 +2,7 @@
 name = "app"
 version = "0.0.0"
 dependencies = [
+    "sqlmodel",
     "Jinja2",
     "emails",
     "fastapi",
@@ -59,8 +60,9 @@ addopts = [
     # "--mypy",
     "--cov=app", "--cov-report=xml", "--no-cov-on-fail",
     # "-k", "test_testname",
+    # "-k", "test_use_token",
     # "-k", "test_user_register",
-    "-r", "A",
+    # "-r", "A",
     # "-vv",
     # "--showlocals",
 ]

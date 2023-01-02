@@ -9,14 +9,14 @@ router = APIRouter()
 
 
 @router.post('/')
-async def item_create(*, db: Session = Depends(get_db)) -> Item:
-    return await Item.crud.create(db)
+def item_create(*, db: Session = Depends(get_db)) -> Item:
+    return Item.crud.create(db)
 
 
 @router.get('/{id}/')
-async def item_get(*, id: int, db: Session = Depends(get_db)) -> Item:
+def item_get(*, id: int, db: Session = Depends(get_db)) -> Item:
     # experiment()
-    return await Item.crud.get_or_404(db, id=id)
+    return Item.crud.get_or_404(db, id=id)
 
 
 DBG = '''

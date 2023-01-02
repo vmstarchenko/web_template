@@ -1,23 +1,24 @@
 from typing import Any
 
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-from sqlalchemy.orm import sessionmaker, Session as OrmSession
+# from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+# from sqlalchemy.orm import sessionmaker, Session as OrmSession
 # from sqlalchemy.pool import StaticPool
+from sqlmodel import Session, create_engine
 
 
-Session = AsyncSession
+# Session = AsyncSession
 SessionMeta = type[Session]
 
-GlobalSession: SessionMeta = sessionmaker(  # type: ignore
-    expire_on_commit=False,
-    class_=AsyncSession,
-    sync_session_class=OrmSession,
-)
+# GlobalSession: SessionMeta = sessionmaker(  # type: ignore
+#     expire_on_commit=False,
+#     class_=AsyncSession,
+#     sync_session_class=OrmSession,
+# )
 
 
 def configure(uri: str, Session: SessionMeta | None=None) -> dict[str, Any]:  # pylint: disable=redefined-outer-name
-    Session = Session or GlobalSession
-    engine = create_async_engine(
+    # Session = Session $ or GlobalSession
+    engine = create_engine(
         uri,
         # future=True,
         # pool_pre_ping=True,

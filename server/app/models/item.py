@@ -1,5 +1,5 @@
-from sqlalchemy import Column, Integer
-
+from typing import Optional
+from sqlmodel import Field
 from app.db import BaseModel, BaseCRUD
 
 
@@ -7,7 +7,7 @@ class CRUD(BaseCRUD['Item']):
     pass
 
 
-class Item(BaseModel):
-    id = Column(Integer, primary_key=True, autoincrement=True)
+class Item(BaseModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
 
-    crud: CRUD
+Item.crud = CRUD(Item)

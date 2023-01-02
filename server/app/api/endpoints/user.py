@@ -1,5 +1,4 @@
 from typing import Any, List
-from urllib.parse import ParseResult
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Request
 from fastapi.encoders import jsonable_encoder
@@ -26,19 +25,19 @@ router = APIRouter()
 
 
 @router.get("/", response_model=List[schemas.User])
-async def user_list(
+def user_list(
     db: Session = Depends(deps.get_db),
     skip: int = 0,
     limit: int = 100,
     current_user: User = Depends(deps.get_current_superuser),
 ) -> list[User]:
     return list((
-        await db.scalars(select(User).order_by(User.id).offset(skip).limit(limit))
+        db.scalars(select(User).order_by(User.id).offset(skip).limit(limit))
     ))
 
 
 @router.post("/", response_model=schemas.User)
-async def user_create(
+def user_create(
     *,
     db: Session = Depends(deps.get_db),
     user_in: schemas.UserCreate,
@@ -48,13 +47,13 @@ async def user_create(
     Create new user.
     """
     manager = User.crud
-    user = await manager.get(db, email=user_in.email)
+    user = manager.get(db, email=user_in.email)
     if user:
         raise HTTPException(
             status_code=400,
             detail="The user with this username already exists in the system.",
         )
-    user = await manager.create(db, obj_in=user_in)
+    user = manager.create(db, obj_in=user_in)
     # if settings.EMAILS_ENABLED and user_in.email:
     #     send_new_account_email(
     #         email_to=user_in.email, username=user_in.email, password=user_in.password
@@ -113,14 +112,14 @@ async def user_register(
             status_code=403,
             detail="Open user registration is forbidden on this server",
         )
-    user = await User.crud.get_or_none(db, email=email)
+    user = User.crud.get_or_none(db, email=email)
     if user:
         raise HTTPException(
             status_code=400,
             detail="The user with this username already exists in the system",
         )
 
-    user = await User.crud.create(db, password=password, email=email, username=username)
+    user = User.crud.create(db, password=password, email=email, username=username)
     url = request.url
     link = f'{url.scheme}://{url.hostname}/api/user/activate/{user.id}/'
     send_new_account_email(link=link, email=user.email, username=user.username)
@@ -128,18 +127,18 @@ async def user_register(
 
 
 @router.get("/activate/{user_id}/", response_model=schemas.User)
-async def user_activate(
+def user_activate(
     *,
     db: Session = Depends(deps.get_db),
     user_id: int,
 ) -> Any:
     # TODO: use signed token
-    user = await User.crud.get_or_404(db, id=user_id)
-    await user.crud.update(db, user, is_active=True)
+    user = User.crud.get_or_404(db, id=user_id)
+    user.crud.update(db, user, is_active=True)
     return user
 
 @router.post("/login/")
-async def user_login(
+def user_login(
     db: Session = Depends(deps.get_db),
     form_data: OAuth2PasswordRequestForm = Depends()
 ) -> Any:
@@ -147,7 +146,7 @@ async def user_login(
     OAuth2 compatible token login, get an access token for future requests
     """
     try:
-        user = await User.crud.authenticate(
+        user = User.crud.authenticate(
             db,
             username=form_data.username, password=form_data.password
         )
@@ -157,7 +156,7 @@ async def user_login(
     if not user.is_active:
         raise HTTPException(status_code=400, detail="Inactive user")
 
-    token = await Token.crud.create(db, user_id=user.id)
+    token = Token.crud.create(db, user_id=user.id)
     jwt_token = token.encode()
     return {
         "access_token": jwt_token,
@@ -209,7 +208,7 @@ async def user_login(
 
 
 @router.get("/{user_id}/", response_model=schemas.User)
-async def user_detail(
+def user_detail(
     user_id: int,
     current_user: User = Depends(deps.get_current_user),
     db: Session = Depends(deps.get_db),
@@ -217,7 +216,7 @@ async def user_detail(
     """
     Get a specific user by id.
     """
-    user = await User.crud.get(db, id=user_id)
+    user = User.crud.get(db, id=user_id)
     if user == current_user:
         return user
     if not user.is_superuser:
@@ -228,7 +227,7 @@ async def user_detail(
 
 
 @router.put("/{user_id}/", response_model=schemas.User)
-async def user_update(
+def user_update(
     *,
     db: Session = Depends(deps.get_db),
     user_id: int,
@@ -238,8 +237,6 @@ async def user_update(
     """
     Update a user.
     """
-    user = await User.crud.get_or_404(db, id=user_id)
-    user = await User.crud.update(db, obj=user, obj_in=user_in)
+    user = User.crud.get_or_404(db, id=user_id)
+    user = User.crud.update(db, obj=user, obj_in=user_in)
     return user
-
-

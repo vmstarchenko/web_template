@@ -7,7 +7,12 @@ from app.core import settings
 from app.templates import render
 
 
-def send_email(email_to: str, subject: str = "", html: str = "", environment: dict[str, Any] = {}) -> None:
+def send_email(
+        email_to: str, subject: str = "", html: str = "",
+        environment: dict[str, Any] = None
+    ) -> None:
+    environment = environment or {}
+
     message = emails.Message(
         subject=subject,
         html=html,

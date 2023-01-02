@@ -1,10 +1,11 @@
+from typing import Optional
 import datetime
 
 from jose import jwt
 from sqlalchemy import (
     Boolean, Column, Integer, DateTime, ForeignKey
 )
-from sqlalchemy.orm import relationship
+from sqlmodel import Relationship, Field
 
 from app.db import BaseModel, BaseCRUD, Session
 
@@ -12,18 +13,25 @@ from app.core import security, settings
 
 from .user import User
 
+from sqlmodel import select
 
 class CRUD(BaseCRUD['Token']):
-    async def load(self, db: Session, payload: dict[str, str | datetime.datetime]) -> 'Token':
-        return await self.get(db, id=payload['tid'])
+    def load(self, db: Session, payload: dict[str, str | datetime.datetime]) -> 'Token':
+        # return db.exec(select(Token).where(Token.id == payload['tid'])).one()
+        return self.get(db, id=payload['tid'])
 
 
-class Token(BaseModel):
-    id = Column(Integer, primary_key=True, index=True)
-    is_active = Column(Boolean(), default=True, nullable=False)
-    last_usage = Column(DateTime, nullable=False, default=lambda: datetime.datetime.now())  # pylint: disable=unnecessary-lambda
-    user_id = Column(Integer, ForeignKey('user.id'), nullable=False)
-    user: User = relationship(User, uselist=False, lazy='selectin')
+class Token(BaseModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    is_active: bool = Field(default=True)
+    last_usage: datetime.datetime = Field(
+        sa_column=Column(
+            DateTime(timezone=True),
+            default=lambda: datetime.datetime.now()
+        ),
+    )  # pylint: disable=unnecessary-lambda
+    user_id: int = Field(foreign_key='user.id')
+    user: User = Relationship(back_populates='token')
 
     def encode(self, expires_delta: datetime.timedelta | None = None) -> str:
         if expires_delta is not None:
@@ -49,4 +57,4 @@ class Token(BaseModel):
         payload['tid'] = int(payload['tid'])
         return payload
 
-    crud: CRUD
+Token.crud = CRUD(Token)

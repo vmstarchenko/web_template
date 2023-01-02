@@ -1,9 +1,9 @@
 from .crud import BaseCRUD
-from .base_model import BaseModel, BaseModelMeta
-from .session import Session, SessionMeta, GlobalSession, configure
+from .base_model import BaseModel
+from .session import Session, SessionMeta, configure, create_engine
 
 __all__ = (
     'BaseCRUD',
     'BaseModel', 'BaseModelMeta',
-    'Session', 'SessionMeta', 'GlobalSession', 'configure',
+    'Session', 'SessionMeta', 'configure',
 )

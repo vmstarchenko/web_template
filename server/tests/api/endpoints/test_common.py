@@ -1,13 +1,12 @@
 import pytest
-from httpx import AsyncClient as Client
 
 
-async def test_info(client: Client) -> None:
-    resp = await client.get('/info/')
+def test_info(client) -> None:
+    resp = client.get('/info/')
     assert resp.status_code == 200, resp
     res = resp.json()
     assert res == {
-        'docs_url': 'http://testhost.example/docs',
+        'docs_url': 'http://testserver/docs',
         'info': 'Hello! This is api info page.',
-        'redoc_url': 'http://testhost.example/redoc',
+        'redoc_url': 'http://testserver/redoc',
     }

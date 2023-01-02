@@ -1,93 +1,87 @@
 from typing import AsyncIterable, Any
 import functools
 
-from httpx import AsyncClient as Client
+from fastapi.testclient import TestClient as Client
 import pytest
 from sqlalchemy.orm import sessionmaker
 
 
 from app import deps, models
-from app.db import configure, Session, BaseModel, SessionMeta
+from app.db import configure, Session, BaseModel, SessionMeta, create_engine
 from app.core import settings
 from app.main import app
+from sqlmodel import SQLModel
 
 import sqlalchemy
-from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy.orm import sessionmaker, Session as OrmSession
 from sqlalchemy.pool import StaticPool
 
 
-@pytest.fixture()
-async def db_initials() -> AsyncIterable[Any]:
-    uri = 'sqlite+aiosqlite://'
-
-    TestSession: SessionMeta = sessionmaker(  # type: ignore
-        expire_on_commit=False,
-        class_=Session,
+@pytest.fixture(name="db")
+def db_fixture():
+    engine = create_engine(
+        "sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool
     )
-
-    conf = configure(uri=uri, Session=TestSession)
-    engine = conf['engine']
-
-    meta = BaseModel.metadata
-    async with engine.begin() as conn:
-        await conn.run_sync(meta.drop_all)
-        await conn.run_sync(meta.create_all)
-
-        yield {'Session': TestSession}
-
-        await conn.run_sync(meta.drop_all)
+    SQLModel.metadata.create_all(engine)
+    with Session(engine) as session:
+        yield session
 
 
-@pytest.fixture()
-async def db(db_initials: Any, client: Client) -> AsyncIterable[Session]:
-    async for db in app.dependency_overrides[deps.get_db]():
-        yield db
+# @pytest.fixture()
+# def db(session: Session, client: Client) -> AsyncIterable[Session]:
+#     for db in app.dependency_overrides[deps.get_db]():
+#         yield db
 
 
-@pytest.fixture()
-async def client(db_initials: Any) -> AsyncIterable[Client]:
-    async with Client(app=app, base_url='http://testhost.example') as client:
-        app.dependency_overrides[deps.get_db] = deps.DbDependency(Session=db_initials['Session'])
-        yield client
+@pytest.fixture(name="client")
+def client_fixture(db: Session):
+    def get_session_override():
+        return db
+
+    app.dependency_overrides[deps.get_db] = get_session_override
+    with Client(app) as client:
+        try:
+            yield client
+        finally:
+            app.dependency_overrides.clear()
 
 
 @pytest.fixture()
-async def user(client: Client, db: Session) -> AsyncIterable[models.User]:
-    obj = await models.User.crud.create(
+def user(client: Client, db: Session) -> AsyncIterable[models.User]:
+    obj = models.User.crud.create(
         db, email='test@test.example', password='password', username='user', is_active=True,
     )
-    # obj.headers = await get_user_headers(client, 'username', 'password')
+    # obj.headers = get_user_headers(client, 'username', 'password')
     yield obj
     # obj.delete()  # TODO
 
 
 @pytest.fixture()
-async def superuser(client: Client, db: Session) -> AsyncIterable[models.User]:
-    obj = await models.User.crud.create(
+def superuser(client: Client, db: Session) -> AsyncIterable[models.User]:
+    obj = models.User.crud.create(
         db,
         email='superuser@test.example', password='password', username='superuser',
         is_superuser=True,
         is_active=True
     )
-    # obj.headers = await get_user_headers(client, 'superuser', 'password')
+    # obj.headers = get_user_headers(client, 'superuser', 'password')
     yield obj
     # obj.delete()  # TODO
 
 
 @pytest.fixture()
-async def user_headers(client: Client, user: models.User) -> AsyncIterable[dict[str, str]]:
-    yield await get_user_headers(client, 'user', 'password')
+def user_headers(client: Client, user: models.User) -> AsyncIterable[dict[str, str]]:
+    yield get_user_headers(client, 'user', 'password')
 
 
 @pytest.fixture()
-async def superuser_headers(client: Client, superuser: models.User) -> AsyncIterable[dict[str, str]]:
-    yield await get_user_headers(client, 'superuser', 'password')
+def superuser_headers(client: Client, superuser: models.User) -> AsyncIterable[dict[str, str]]:
+    yield get_user_headers(client, 'superuser', 'password')
 
 
 
-async def get_user_headers(client: Client, username: str, password: str) -> dict[str, str]:
-    resp = await client.post(settings.TOKEN_URL, data={
+def get_user_headers(client: Client, username: str, password: str) -> dict[str, str]:
+    resp = client.post(settings.TOKEN_URL, data={
         'username': username, 'password': password
     })
     res = resp.json()
@@ -152,4 +146,3 @@ async def smtp_server():
         yield controller.handler
     finally:
         controller.stop()
-
