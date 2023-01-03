@@ -1,24 +1,24 @@
 from typing import AsyncIterable
 
-from .session import SessionMeta, Session as Session_
-
-# _local_db: ContextVar[Session_] = ContextVar('local_db')
+from .session import SessionMeta, Session
 
 
 class DbDependency:
-    def __init__(self, Session: SessionMeta | None = None):
-        self.Session = Session
+    def __init__(self):
+        self.engine = None
 
-    def __call__(self) -> AsyncIterable[Session_]:
-        Session = self.Session
-        with Session() as db:
+    async def __call__(self) -> AsyncIterable[Session]:
+        async with Session(self.engine) as db:
             try:
                 yield db
-                db.commit()
+                await db.commit()
             except:
-                db.rollback()
+                await db.rollback()
                 raise
             finally:
-                db.close()
+                await db.close()
+
+    def init(self, engine):
+        self.engine = engine
 
 get_db = DbDependency()
