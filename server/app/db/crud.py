@@ -15,11 +15,11 @@ class BaseCRUD(Generic[T]):
     def __init__(self, model: type[T]):  # pylint: disable=invalid-name
         self.model = model  # pylint: disable=invalid-name
 
-    def create(self, db: Session, *, save_: bool = True, **attrs: Any) -> T:
+    async def create(self, db: Session, *, save_: bool = True, **attrs: Any) -> T:
         obj = self.model(**attrs)
         db.add(obj)
         if save_:
-            obj.save(db)
+            await obj.save(db)
         return obj
 
     def get_query(self, **kv_conditions: Any) -> Executable:
@@ -28,10 +28,10 @@ class BaseCRUD(Generic[T]):
             query = query.filter_by(**kv_conditions)
         return query
 
-    def get(self, db: Session, **kv_conditions: Any) -> T:
+    async def get(self, db: Session, **kv_conditions: Any) -> T:
         return cast(  # TODO: remove cast
             T,
-            (db.execute(self.get_query(**kv_conditions))).scalar_one(),
+            (await db.execute(self.get_query(**kv_conditions))).scalar_one(),
         )
 
     def get_or_create(
@@ -56,7 +56,7 @@ class BaseCRUD(Generic[T]):
         except NoResultFound:
             return None
 
-    def update(
+    async def update(
             self, db: Session, obj: T, obj_in: Any=None, save_: bool=True, **kwargs: Any
             ) -> T:
         # if isinstance(obj, dict):
@@ -72,7 +72,7 @@ class BaseCRUD(Generic[T]):
 
         db.add(obj)
         if save_:
-            obj.save(db)
+            await obj.save(db)
         return obj
 
     # def get_multi_by_user(self, *, user_id: int, skip: int = 0, limit: int = 100) -> list[T]:

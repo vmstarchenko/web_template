@@ -10,6 +10,9 @@ server_up: server_down
 server_bash: server_down server_build
 	podman-compose -f ./docker-compose.yml run web bash
 
+server_bash2:
+	podman-compose -f ./docker-compose.yml exec web bash
+
 server_test: server_down
 	podman-compose -f server/docker-compose.yml run web bash etc/scripts/test.sh
 

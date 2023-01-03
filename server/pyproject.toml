@@ -10,6 +10,7 @@ dependencies = [
     "pydantic",
     "pydantic[dotenv]",
     "pydantic[email]",
+    "fastapi-users[sqlalchemy]",
     "python-jose",
     "python-multipart",
     "pyyaml",
@@ -59,11 +60,12 @@ addopts = [
     # "--pylint",
     # "--mypy",
     "--cov=app", "--cov-report=xml", "--no-cov-on-fail",
-    # "-k", "test_testname",
+    # "-k", "test_item_get",
     # "-k", "test_use_token",
     # "-k", "test_user_register",
     # "-r", "A",
-    # "-vv",
+    # "--pdb",
+    "-vv",
     # "--showlocals",
 ]
 testpaths = [

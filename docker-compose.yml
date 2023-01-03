@@ -39,5 +39,5 @@ services:
     ports: ["8080:8080"]
     user: ${USER_ID}
     volumes:
-    - ./app/static:/var/www/static
+    - ./server/app/static:/var/www/static
     depends_on: ["web"]

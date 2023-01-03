@@ -3,7 +3,9 @@ from typing import Any
 # from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 # from sqlalchemy.orm import sessionmaker, Session as OrmSession
 # from sqlalchemy.pool import StaticPool
-from sqlmodel import Session, create_engine
+# from sqlmodel import Session, create_engine
+from sqlalchemy.ext.asyncio import create_async_engine
+from sqlmodel.ext.asyncio.session import AsyncSession as Session
 
 
 # Session = AsyncSession
@@ -18,13 +20,13 @@ SessionMeta = type[Session]
 
 def configure(uri: str, Session: SessionMeta | None=None) -> dict[str, Any]:  # pylint: disable=redefined-outer-name
     # Session = Session $ or GlobalSession
-    engine = create_engine(
+    engine = create_async_engine(
         uri,
         # future=True,
         # pool_pre_ping=True,
         # poolclass=StaticPool,
         # connect_args={'check_same_thread': False},
     )
-    Session.configure(bind=engine)  # type: ignore
+    # Session.configure(bind=engine)  # type: ignore
 
     return {'Session': Session, 'engine': engine}

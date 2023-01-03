@@ -1,6 +1,6 @@
 from .crud import BaseCRUD
-from .base_model import BaseModel
-from .session import Session, SessionMeta, configure, create_engine
+from .base_model import BaseModel, SABaseModel
+from .session import Session, SessionMeta, configure, create_async_engine
 
 __all__ = (
     'BaseCRUD',

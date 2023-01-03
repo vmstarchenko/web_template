@@ -1,5 +1,6 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import JSONResponse
 from starlette.middleware import cors, Middleware
 
 from app.db import configure
@@ -36,3 +37,9 @@ def startup_event() -> None:
         return
 
     configure(settings.DATABASE_URL)
+
+from sqlalchemy.exc import NoResultFound
+
+@app.exception_handler(NoResultFound)
+async def sa_no_result_found(request: Request, exc: NoResultFound):
+    return JSONResponse(status_code=404, content={'detail': "Not Found"})

@@ -10,7 +10,7 @@ ARG \
 RUN set -ex \
     && apt-get update \
     && apt-get install \
-        curl \
+        curl less \
         -y \
     && rm -rf /var/lib/apt/lists/*
 
