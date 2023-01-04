@@ -63,7 +63,7 @@ addopts = [
     # "-k", "test_item_get",
     # "-k", "test_use_token",
     # "-k", "test_user_register",
-    # "-r", "A",
+    "-r", "A",
     # "--pdb",
     "-vv",
     # "--showlocals",

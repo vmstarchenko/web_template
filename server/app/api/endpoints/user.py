@@ -5,6 +5,7 @@ from app.db import Session
 from app.models.user import User
 from app.schemas.user import UserCreate, UserRead, UserUpdate
 from app.models.user import auth_backend, fastapi_users
+from app.utils import signing
 
 router = APIRouter()
 
@@ -15,13 +16,13 @@ router.include_router(fastapi_users.get_verify_router(UserRead))
 router.include_router(fastapi_users.get_users_router(UserRead, UserUpdate))
 
 
-@router.get("/verify/{user_id}/", response_model=UserRead)
+@router.get("/verify/", response_model=UserRead)
 async def user_verify(
     *,
     db: Session = Depends(deps.get_db),
-    user_id: int,
+    key: str,
 ) -> User:
-    # TODO: use signed token instead user_id
+    user_id = signing.unsign(key, salt='verify_new_user')
     user = await User.crud.get_or_404(db, id=user_id)
     await User.crud.update(db, user, is_verified=True)
     return user

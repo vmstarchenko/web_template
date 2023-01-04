@@ -1,3 +1,4 @@
+import datetime
 from typing import Any, Optional, AsyncGenerator
 import contextlib
 
@@ -12,11 +13,10 @@ from sqlalchemy import Column, Integer, String
 from app.db import SABaseModel, Session
 from app.db.crud import BaseCRUD
 from app.db.deps import get_db
-from app.utils import send_new_account_email
+from app.utils import send_new_account_email, signing
 from app.schemas.user import UserCreate
+from app.core import settings
 
-
-SECRET = "SECRET"  # TODO
 
 __all__ = ('User',)
 
@@ -39,8 +39,8 @@ User.crud = CRUD(User)
 
 
 class UserManager(IntegerIDMixin, BaseUserManager[User, int]):
-    reset_password_token_secret = SECRET
-    verification_token_secret = SECRET
+    reset_password_token_secret = settings.SECRET_KEY
+    verification_token_secret = settings.SECRET_KEY
 
     async def on_after_register(
             self, user: User, request: Optional[Request] = None
@@ -50,7 +50,8 @@ class UserManager(IntegerIDMixin, BaseUserManager[User, int]):
             return
 
         url = request.url
-        link = f'{url.scheme}://{url.hostname}/api/user/verify/{user.id}/'
+        key = signing.sign(user.id, expires=datetime.timedelta(days=1), salt='verify_new_user')
+        link = f'{url.scheme}://{url.hostname}/api/user/verify/?key={key}'
         send_new_account_email(link=link, email=user.email, username=user.username)
 
     async def on_after_forgot_password(
@@ -85,7 +86,7 @@ get_user_manager_context = contextlib.asynccontextmanager(get_user_manager)
 
 
 def get_jwt_strategy() -> JWTStrategy[Any, int]:
-    return JWTStrategy(secret=SECRET, lifetime_seconds=3600)
+    return JWTStrategy(secret=settings.SECRET_KEY, lifetime_seconds=3600)
 
 
 auth_backend = AuthenticationBackend(

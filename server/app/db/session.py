@@ -18,7 +18,7 @@ def configure(uri: str) -> dict[str, Any]:  # pylint: disable=redefined-outer-na
         # poolclass=StaticPool,
         # connect_args={'check_same_thread': False},
     )
-    from .deps import get_db  # pylint: disable=import-outside-toplevel
+    from .deps import get_db  # pylint: disable=import-outside-toplevel,cyclic-import
     get_db.init(engine)
 
     return {'Session': Session, 'engine': engine}
