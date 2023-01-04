@@ -1,9 +1,5 @@
 from .crud import BaseCRUD
 from .base_model import Base, BaseModel, SABaseModel
-from .session import Session, SessionMeta, configure, create_async_engine
+from .session import Session, configure, create_async_engine
 
-__all__ = (
-    'BaseCRUD',
-    'BaseModel', 'BaseModelMeta',
-    'Session', 'SessionMeta', 'configure',
-)
+__all__ = ('SABaseModel', 'Session', 'BaseModel', 'BaseCRUD', 'configure')

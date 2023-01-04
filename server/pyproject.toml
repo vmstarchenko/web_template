@@ -57,8 +57,8 @@ packages = ["app"]
 asyncio_mode = "auto"
 disable_test_id_escaping_and_forfeit_all_rights_to_community_support = true
 addopts = [
-    # "--pylint",
-    # "--mypy",
+    "--pylint",
+    "--mypy",
     "--cov=app", "--cov-report=xml", "--no-cov-on-fail",
     # "-k", "test_item_get",
     # "-k", "test_use_token",

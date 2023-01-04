@@ -7,13 +7,19 @@ from fastapi.encoders import jsonable_encoder
 
 from .session import Session
 
-T = TypeVar('T', bound='BaseModel')
+T = TypeVar('T', bound='AbstractBase')
 _DEFAULT = object()
 
 
 class BaseCRUD(Generic[T]):
-    def __init__(self, model: type[T]):  # pylint: disable=invalid-name
-        self.model = model  # pylint: disable=invalid-name
+    def __init__(self, model: type[T]):
+        self.model = model
+
+    @staticmethod
+    def default() -> Any:
+        def not_implemented(self: Any) -> Any:
+            raise ValueError('set Model.crud = CRUD(model)')
+        return property(not_implemented)
 
     async def create(self, db: Session, *, save_: bool = True, **attrs: Any) -> T:
         obj = self.model(**attrs)
@@ -75,4 +81,4 @@ class BaseCRUD(Generic[T]):
             await obj.save(db)
         return obj
 
-from .base_model import BaseModel # pylint: disable=unused-import,wrong-import-position,cyclic-import
+from .base_model import AbstractBase, SABaseModel, BaseModel  # pylint: disable=unused-import,wrong-import-position,cyclic-import

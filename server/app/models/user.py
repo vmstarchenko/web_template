@@ -1,11 +1,5 @@
-from typing import AsyncGenerator, Any, Optional
+from typing import Any, Optional, AsyncGenerator
 import contextlib
-
-from app.db import SABaseModel, Session
-from app.db.crud import BaseCRUD
-from app.db.deps import get_db
-from app.utils import send_new_account_email
-from app.schemas.user import UserCreate
 
 from fastapi import Depends, Request
 
@@ -15,12 +9,16 @@ from fastapi_users.db import SQLAlchemyBaseUserTable, SQLAlchemyUserDatabase
 
 from sqlalchemy import Column, Integer, String
 
-SECRET = "SECRET"
+from app.db import SABaseModel, Session
+from app.db.crud import BaseCRUD
+from app.db.deps import get_db
+from app.utils import send_new_account_email
+from app.schemas.user import UserCreate
 
 
-class User(SQLAlchemyBaseUserTable[int], SABaseModel):
-    id: int = Column(Integer, primary_key=True, autoincrement=True)
-    username: str = Column(String(length=32), nullable=False, unique=True, index=True)
+SECRET = "SECRET"  # TODO
+
+__all__ = ('User',)
 
 
 class CRUD(BaseCRUD['User']):
@@ -28,8 +26,14 @@ class CRUD(BaseCRUD['User']):
         async with get_user_db_context(db) as user_db:
             async with get_user_manager_context(user_db) as user_manager:
                 return await user_manager.create(UserCreate(**kwargs))
-        return user
 
+
+class User(SQLAlchemyBaseUserTable[int], SABaseModel):
+    id: int = Column(Integer, primary_key=True, autoincrement=True)
+    username: str = Column(String(length=32), nullable=False, unique=True, index=True)
+
+    # crud: CRUD = classmethod(property(lambda cls: CRUD(cls)))  # types: ignore
+    crud: CRUD = CRUD.default()
 
 User.crud = CRUD(User)
 
@@ -38,7 +42,10 @@ class UserManager(IntegerIDMixin, BaseUserManager[User, int]):
     reset_password_token_secret = SECRET
     verification_token_secret = SECRET
 
-    async def on_after_register(self, user: User, request: Optional[Request] = None):
+    async def on_after_register(
+            self, user: User, request: Optional[Request] = None
+        ) -> None:
+
         if request is None:
             return
 
@@ -47,30 +54,37 @@ class UserManager(IntegerIDMixin, BaseUserManager[User, int]):
         send_new_account_email(link=link, email=user.email, username=user.username)
 
     async def on_after_forgot_password(
-        self, user: User, token: str, request: Optional[Request] = None
-    ):
+            self, user: User, token: str, request: Optional[Request] = None
+        ) -> None:
+
         print(f"User {user.id} has forgot their password. Reset token: {token}")
 
     async def on_after_request_verify(
-        self, user: User, token: str, request: Optional[Request] = None
-    ):
+            self, user: User, token: str, request: Optional[Request] = None
+        ) -> None:
+
         print(f"Verification requested for user {user.id}. Verification token: {token}")
 
 
 # DEPS
-async def get_user_db(session = Depends(get_db)):
-    db = SQLAlchemyUserDatabase(session, User)
-    yield db
+
+UserDb = SQLAlchemyUserDatabase[User, int]
+
+async def get_user_db(session: Session = Depends(get_db)) -> AsyncGenerator[UserDb, None]:
+    yield SQLAlchemyUserDatabase(session, User)
 
 
-async def get_user_manager(user_db: SQLAlchemyUserDatabase = Depends(get_user_db)):
+async def get_user_manager(
+        user_db: UserDb = Depends(get_user_db)
+    ) -> AsyncGenerator[UserManager, None]:
+
     yield UserManager(user_db)
 
 get_user_db_context = contextlib.asynccontextmanager(get_user_db)
 get_user_manager_context = contextlib.asynccontextmanager(get_user_manager)
 
 
-def get_jwt_strategy() -> JWTStrategy:
+def get_jwt_strategy() -> JWTStrategy[Any, int]:
     return JWTStrategy(secret=SECRET, lifetime_seconds=3600)
 
 

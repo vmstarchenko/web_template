@@ -1,5 +1,5 @@
 import pytest
-from typing import AsyncIterable, Any
+from typing import AsyncIterator, Any
 import functools
 
 from fastapi.testclient import TestClient as Client
@@ -9,7 +9,7 @@ from sqlalchemy.orm import sessionmaker
 
 
 from app import deps, models
-from app.db import configure, Session, BaseModel, SessionMeta, create_async_engine
+from app.db import configure, Session, BaseModel, create_async_engine
 from app.core import settings
 from app.main import app
 from sqlmodel import SQLModel
@@ -49,7 +49,7 @@ async def engine_fixture():
     '''
 
 @pytest.fixture(name="db")
-async def db_fixture(engine) -> AsyncIterable[Session]:
+async def db_fixture(engine) -> AsyncIterator[Session]:
     get_db = deps.DbDependency()
     get_db.init(engine)
     async for db in get_db():
@@ -57,7 +57,7 @@ async def db_fixture(engine) -> AsyncIterable[Session]:
 
 
 @pytest.fixture(name="client")
-async def client_fixture(db: Session) -> AsyncIterable[Client]:
+async def client_fixture(db: Session) -> AsyncIterator[Client]:
     try:
         app.dependency_overrides[deps.get_db] = lambda: db
         with Client(app) as client:

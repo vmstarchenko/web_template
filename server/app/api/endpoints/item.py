@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 
-from app.models import Item, ItemRead, ItemCreate
+from app.models import Item, ItemRead
 from app.db import Session
 from app.deps import get_db
 

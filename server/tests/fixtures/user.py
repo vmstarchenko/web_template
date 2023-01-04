@@ -2,7 +2,7 @@ import pytest
 
 from typing import AsyncIterable, Any
 
-from app.db import configure, Session, BaseModel, SessionMeta, create_async_engine
+from app.db import configure, Session, BaseModel, create_async_engine
 from app import models
 from app.core import settings
 

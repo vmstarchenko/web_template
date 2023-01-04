@@ -1,8 +1,6 @@
 from typing import Any
-import logging
 
 import emails
-from emails.template import JinjaTemplate
 from app.core import settings
 
 from .templates import render

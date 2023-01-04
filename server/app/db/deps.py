@@ -1,11 +1,11 @@
 from typing import AsyncIterable
 
-from .session import SessionMeta, Session
+from .session import Session, Engine
 
 
 class DbDependency:
-    def __init__(self):
-        self.engine = None
+    def __init__(self) -> None:
+        self.engine: Engine | None = None
 
     async def __call__(self) -> AsyncIterable[Session]:
         async with Session(self.engine) as db:
@@ -18,7 +18,7 @@ class DbDependency:
             finally:
                 await db.close()
 
-    def init(self, engine):
+    def init(self, engine: Engine) -> None:
         self.engine = engine
 
 get_db = DbDependency()
