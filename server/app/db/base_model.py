@@ -4,7 +4,7 @@ from .session import Session
 from sqlmodel import SQLModel
 
 
-_Base = declarative_base(metadata=SQLModel.metadata)
+Base = declarative_base(metadata=SQLModel.metadata)
 # SQLModel.metadata = AbstractBaseModel.metadata
 
 
@@ -22,7 +22,7 @@ class BaseModelMixin:
         await db.refresh(self)
 
 
-class SABaseModel(BaseModelMixin, _Base):
+class SABaseModel(BaseModelMixin, Base):
     __abstract__ = True
 
 
