@@ -8,6 +8,10 @@ from app.core import settings
 
 from .client import Client
 
+__all__ = (
+    'user_fixture', 'superuser_fixture', 'user_headers', 'superuser_headers', 'UserHeaders',
+)
+
 
 @pytest.fixture(name='user')
 async def user_fixture(client: Client, db: Session) -> AsyncIterable[models.User]:
@@ -35,16 +39,19 @@ async def superuser_fixture(client: Client, db: Session) -> AsyncIterable[models
 
 
 @pytest.fixture()
-def user_headers(client: Client, user: models.User) -> AsyncIterable[dict[str, str]]:
+async def user_headers(client: Client, user: models.User) -> AsyncIterable[dict[str, str]]:
     yield get_user_headers(client, 'user@test.example', 'password')
 
 
 @pytest.fixture()
-def superuser_headers(client: Client, superuser: models.User) -> AsyncIterable[dict[str, str]]:
+async def superuser_headers(client: Client, superuser: models.User) -> AsyncIterable[dict[str, str]]:
     yield get_user_headers(client, 'superuser@test.example', 'password')
 
 
-def get_user_headers(client: Client, username: str, password: str) -> dict[str, str]:
+UserHeaders = dict[str, str]
+
+
+def get_user_headers(client: Client, username: str, password: str) -> UserHeaders:
     resp = client.post(settings.TOKEN_URL, data={
         'username': username, 'password': password
     })

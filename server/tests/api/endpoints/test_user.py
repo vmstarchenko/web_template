@@ -1,10 +1,10 @@
-from typing import Dict
-
 from app.models import User # , Token
 from app.core import settings
 
+from conftest import Client, SmtpServer, UserHeaders
 
-def test_get_access_token(client, user: User) -> None:
+
+def test_get_access_token(client: Client, user: User) -> None:
     login_data = {
         "username": "user@test.example",
         "password": "password"
@@ -16,14 +16,14 @@ def test_get_access_token(client, user: User) -> None:
     assert res["access_token"], res
 
 
-def test_use_token(client, user_headers: dict[str, str]) -> None:
+def test_use_token(client: Client, user_headers: UserHeaders) -> None:
     resp = client.get('/api/user/me/', headers=user_headers)
     res = resp.json()
     assert resp.status_code == 200, res
     assert "email" in res, res
 
 
-def test_use_invalid_token(client, user_headers: dict[str, str]) -> None:
+def test_use_invalid_token(client: Client, user_headers: UserHeaders) -> None:
     resp = client.get('/api/user/me/', headers={
         'Authorization': user_headers['Authorization'] + '_invalid',
     })
@@ -40,7 +40,7 @@ def test_use_invalid_token(client, user_headers: dict[str, str]) -> None:
     assert res == {'detail': 'Unauthorized'}, res
 
 
-def test_missing_token(client, user: User) -> None:
+def test_missing_token(client: Client, user: User) -> None:
     resp = client.get('/api/user/me/')
     assert resp.status_code == 401
     res = resp.json()
@@ -52,7 +52,7 @@ def test_missing_token(client, user: User) -> None:
 #     assert resp.status_code == 200, res
 #     assert res == {}, res
 
-async def test_user_register(client, smtp_server) -> None:
+async def test_user_register(client: Client, smtp_server: SmtpServer) -> None:
     resp = client.post('/api/user/register/', json={'password': 'pass', 'email': 'new@test.example', 'username': 'new'})
     res = resp.json()
     assert resp.status_code == 201, res

@@ -1,10 +1,12 @@
-import pytest
+from typing import AsyncIterable, Any
 from dataclasses import dataclass
+
 import re
 import urllib.parse
-from app.core import settings
 import email
 from aiosmtpd.controller import Controller
+import pytest
+from app.core import settings
 
 
 @dataclass
@@ -14,16 +16,16 @@ class EMail:
     content: str
 
     @property
-    def links(self):
+    def links(self) -> list[str]:
         # return [urllib.parse.urlparse(url) for url in re.findall(r'https?://[\S<>]+', self.content)]
         return re.findall(r'https?://[\S<>]+', self.content)
 
 
 class SmtpServer:
-    def __init__(self):
-        self.mails = []
+    def __init__(self) -> None:
+        self.mails: list[EMail] = []
 
-    async def handle_DATA(self, server, session, envelope):
+    async def handle_DATA(self, server: Any, session: Any, envelope: Any) -> str:
         email = EMail(
             sender=envelope.mail_from,
             recievers=envelope.rcpt_tos,
@@ -33,7 +35,7 @@ class SmtpServer:
         return '250 OK'
 
     @staticmethod
-    def get_content(content):
+    def get_content(content: bytes) -> str:
         b = email.message_from_string(content.decode('utf-8'))
         body = []
         if b.is_multipart():
@@ -48,10 +50,10 @@ class SmtpServer:
 
 
 @pytest.fixture()
-async def smtp_server():
+async def smtp_server() -> AsyncIterable[SmtpServer]:
     controller = Controller(SmtpServer(), hostname=settings.SMTP_HOST, port=settings.SMTP_PORT)
     try:
-        controller.start()
+        controller.start()  # type: ignore
         yield controller.handler
     finally:
         controller.stop()

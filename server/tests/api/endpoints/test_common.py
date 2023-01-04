@@ -1,7 +1,8 @@
 import pytest
+from conftest import Client
 
 
-def test_info(client) -> None:
+def test_info(client: Client) -> None:
     resp = client.get('/info/')
     assert resp.status_code == 200, resp
     res = resp.json()

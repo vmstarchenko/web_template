@@ -9,7 +9,7 @@ from sqlalchemy.orm import sessionmaker
 
 
 from app import deps, models
-from app.db import configure, Session, BaseModel, create_async_engine
+from app.db import configure, Session, BaseModel, create_async_engine, Engine
 from app.core import settings
 from app.main import app
 from sqlmodel import SQLModel
@@ -19,8 +19,10 @@ from sqlalchemy.orm import sessionmaker, Session as OrmSession
 from sqlalchemy.pool import StaticPool
 
 
+__all__ = ('engine_fixture', 'Client', 'db_fixture', 'client_fixture')
+
 @pytest.fixture(name="engine")
-async def engine_fixture():
+async def engine_fixture() -> AsyncIterator[Engine]:
     engine = create_async_engine(
         "sqlite+aiosqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool
     )
@@ -49,7 +51,7 @@ async def engine_fixture():
     '''
 
 @pytest.fixture(name="db")
-async def db_fixture(engine) -> AsyncIterator[Session]:
+async def db_fixture(engine: Engine) -> AsyncIterator[Session]:
     get_db = deps.DbDependency()
     get_db.init(engine)
     async for db in get_db():

@@ -1,6 +1,6 @@
 from typing import Any
 
-import emails
+import emails  # type: ignore
 from app.core import settings
 
 from .templates import render
@@ -8,7 +8,7 @@ from .templates import render
 
 def send_email(
         email_to: str, subject: str = "", html: str = "",
-        environment: dict[str, Any] = None
+        environment: dict[str, Any] | None = None
     ) -> None:
     environment = environment or {}
 
