@@ -1,8 +1,13 @@
 # Plan
-- fastapi-extras
 - db container: mysql, sqlite, postgres
 - ui init
 - setup instruction in readme
+- permissions (groups, per type, per object)
+- file upload
+- filtering
+- tags (many-to-many example)
+- objects versions
+- admin pannel
 
 # Setup
 ```bash
