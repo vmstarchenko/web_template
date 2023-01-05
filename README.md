@@ -11,7 +11,6 @@
 
 # Setup
 ```bash
-cp etc/.bashrc var/volumes/server_home/.bashrc
 make server_bash
 server_setup.sh  # same as: bash ~/etc/scripts/server_setup.sh
 exit
@@ -27,4 +26,14 @@ test.sh  # same as: bash ~/etc/scripts/test.sh
 ```bash
 make server_up
 # and open http://localhost:8080
+```
+
+# Setup ui
+```bash
+mkdir ui
+make ui_build && make ui_bash
+yarn global add @ionic/cli && ionic config set -g npmClient yarn
+ionic start ui blank --type=react --no-deps --no-git
+mv ~/ui/ui/* ~/ui/ && rm -r ~/ui/ui
+yarn run start
 ```
