@@ -28,14 +28,11 @@ class CRUD(BaseCRUD['User']):
                 return await user_manager.create(UserCreate(**kwargs))
 
 
-class User(SQLAlchemyBaseUserTable[int], SABaseModel):
+class User(SQLAlchemyBaseUserTable[int], SABaseModel):  # type: ignore
     id: int = Column(Integer, primary_key=True, autoincrement=True)
     username: str = Column(String(length=32), nullable=False, unique=True, index=True)
 
-    # crud: CRUD = classmethod(property(lambda cls: CRUD(cls)))  # types: ignore
-    crud: CRUD = CRUD.default()
-
-User.crud = CRUD(User)
+    crud: CRUD
 
 
 class UserManager(IntegerIDMixin, BaseUserManager[User, int]):

@@ -5,9 +5,6 @@ from app.db import BaseModel, BaseCRUD
 __all__ = ('Item', 'ItemRead', 'ItemCreate',)
 
 
-class CRUD(BaseCRUD['Item']):
-    pass
-
 class BaseItem(BaseModel):
     pass
 
@@ -15,9 +12,8 @@ class BaseItem(BaseModel):
 class Item(BaseItem, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
 
-    crud: CRUD = CRUD.default()
+    crud: BaseCRUD['Item']
 
-Item.crud = CRUD(Item)
 
 class ItemRead(BaseItem):
     id: int
