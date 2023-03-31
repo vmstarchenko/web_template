@@ -1,5 +1,5 @@
 import pytest
-from typing import AsyncIterator, Any
+from typing import AsyncIterator, Any, Iterator
 import functools
 
 from fastapi.testclient import TestClient as Client
@@ -19,7 +19,7 @@ from sqlalchemy.orm import sessionmaker, Session as OrmSession
 from sqlalchemy.pool import StaticPool
 
 
-__all__ = ('engine_fixture', 'Client', 'db_fixture', 'client_fixture')
+__all__ = ('engine_fixture', 'Client', 'db_fixture', 'client_fixture', 'api_prefix')
 
 @pytest.fixture(name="engine")
 async def engine_fixture() -> AsyncIterator[Engine]:
@@ -68,3 +68,7 @@ async def client_fixture(db: Session) -> AsyncIterator[Client]:
     finally:
         app.dependency_overrides.clear()
 
+
+@pytest.fixture()
+def api_prefix() -> Iterator[str]:
+    yield settings.API_PREFIX

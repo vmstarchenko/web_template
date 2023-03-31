@@ -11,3 +11,8 @@ def test_info(client: Client) -> None:
         'info': 'Hello! This is api info page.',
         'redoc_url': 'http://testserver/redoc',
     }
+
+
+def test_schema(client: Client, api_prefix: str) -> None:
+    resp = client.get(f'{api_prefix}/schema.json')
+    assert resp.status_code == 200, resp
