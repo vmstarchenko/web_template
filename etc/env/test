@@ -1,0 +1,2 @@
+ENV_TYPE=test
+DATABASE_URL=sqlite://
