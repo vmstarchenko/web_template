@@ -2,20 +2,20 @@
 name = "app"
 version = "0.0.0"
 dependencies = [
-    "sqlmodel",
+    "sqlmodel==0.0.8",
     "Jinja2",
     "emails",
-    "fastapi",
+    "fastapi==0.95.0",
     "passlib",
-    "pydantic",
+    "pydantic==1.10.12",
     "pydantic[dotenv]",
     "pydantic[email]",
-    "fastapi-users[sqlalchemy]",
+    "fastapi-users[sqlalchemy]==10.4.1",
     "python-jose",
     "python-multipart",
     "pyyaml",
-    "sqlalchemy",
-    "sqlalchemy[asyncio]",
+    "sqlalchemy==1.4.41",
+    "sqlalchemy[asyncio]==1.4.41",
     "uvicorn",
 
     # DB
@@ -35,7 +35,7 @@ dev = [
     "pytest-cov",
     "pytest-mypy",
     "pytest-pylint",
-    "sqlalchemy[mypy]",
+    "sqlalchemy[mypy]==1.4.41",
     "types-python-jose",
     "types-passlib",
 ]
@@ -46,7 +46,10 @@ build-backend = "setuptools.build_meta"
 
 [tool.mypy]
 exclude = "venv"
-plugins = ["pydantic.mypy", "sqlalchemy.ext.mypy.plugin"]
+plugins = [
+    "pydantic.mypy",
+    # "sqlalchemy.ext.mypy.plugin",    # TODO: uncomment
+]
 strict = true
 warn_unreachable = true
 
@@ -75,4 +78,5 @@ testpaths = [
 filterwarnings = [
     "ignore::DeprecationWarning:pylint*",
     "ignore::DeprecationWarning:pytest_pylint*",
+    "ignore::DeprecationWarning:passlib.*",    # TODO: remove
 ]

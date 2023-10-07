@@ -9,7 +9,7 @@ server_up: server_down
 	podman-compose -f ./docker-compose.yml up
 
 server_bash: server_down server_build
-	podman-compose -f ./docker-compose.yml run web bash
+	podman-compose -f ./docker-compose.yml run --service-ports web bash
 
 server_bash2:
 	podman-compose -f ./docker-compose.yml exec web bash

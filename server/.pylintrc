@@ -5,3 +5,4 @@ disable=
     too-few-public-methods,fixme,redefined-builtin,unused-argument,too-many-arguments
 extension-pkg-whitelist=pydantic
 good-names=i,e,N,f,it,id,db,Session
+max-line-length=120

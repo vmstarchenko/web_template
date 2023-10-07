@@ -28,9 +28,10 @@ class CRUD(BaseCRUD['User']):
                 return await user_manager.create(UserCreate(**kwargs))
 
 
+# TODO: remove ignores
 class User(SQLAlchemyBaseUserTable[int], SABaseModel):  # type: ignore
-    id: int = Column(Integer, primary_key=True, autoincrement=True)
-    username: str = Column(String(length=32), nullable=False, unique=True, index=True)
+    id: int = Column(Integer, primary_key=True, autoincrement=True)  # type: ignore
+    username: str = Column(String(length=32), nullable=False, unique=True, index=True)   # type: ignore
 
     crud: CRUD
 
