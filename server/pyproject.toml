@@ -31,6 +31,7 @@ dev = [
     "alembic",
     "httpx",
     "pytest",
+    "pytest-alembic",
     "pytest-asyncio",
     "pytest-cov",
     "pytest-mypy",
@@ -62,13 +63,14 @@ disable_test_id_escaping_and_forfeit_all_rights_to_community_support = true
 addopts = [
     "--pylint",
     "--mypy",
+    "--test-alembic",
     "--cov=app", "--cov-report=xml", "--no-cov-on-fail",
     # "-k", "test_item_get",
     # "-k", "test_use_token",
     # "-k", "test_user_register",
-    "-r", "A",
+    # "-r", "A",
     # "--pdb",
-    "-vv",
+    # "-vv",
     # "--showlocals",
 ]
 testpaths = [
