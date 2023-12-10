@@ -8,7 +8,6 @@ __all__ = ('Item', 'ItemRead', 'ItemCreate',)
 class BaseItem(BaseModel):
     pass
 
-
 class Item(BaseItem, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
 

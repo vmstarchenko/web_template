@@ -1,3 +1,5 @@
+from typing import AsyncIterator
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse
@@ -20,24 +22,26 @@ middleware = [
     )
 ]
 
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> AsyncIterator[None]:  # pylint: disable=redefined-outer-name
+    if settings.ENV_TYPE != 'test':
+        configure(settings.DATABASE_URL)
+
+    yield
+
+
 app = FastAPI(
     title=settings.PROJECT_NAME,
     openapi_url=settings.SCHEMA_URL,
     middleware=middleware,
 	docs_url=None, redoc_url=None,
+    lifespan=lifespan,
 )
 
 app.include_router(router)
 
 # Use nginx or fastapi for static and media files
 app.mount(settings.MEDIA_URL, StaticFiles(directory=settings.MEDIA_ROOT), name='media')
-
-@app.on_event('startup')
-def startup_event() -> None:
-    if settings.ENV_TYPE == 'test':
-        return
-
-    configure(settings.DATABASE_URL)
 
 
 @app.exception_handler(NoResultFound)

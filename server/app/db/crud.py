@@ -15,12 +15,6 @@ class BaseCRUD(Generic[T]):
     def __init__(self, model: type[T]):
         self.model = model
 
-    @staticmethod
-    def default() -> Any:
-        def not_implemented(self: Any) -> Any:
-            raise ValueError('set Model.crud = CRUD(model)')
-        return property(not_implemented)
-
     async def create(self, db: Session, *, save_: bool = True, **attrs: Any) -> T:
         obj = self.model(**attrs)
         db.add(obj)
@@ -37,7 +31,7 @@ class BaseCRUD(Generic[T]):
     async def get(self, db: Session, **kv_conditions: Any) -> T:
         return cast(  # TODO: remove cast
             T,
-            (await db.execute(self.get_query(**kv_conditions))).scalar_one(),
+            (await db.exec(self.get_query(**kv_conditions))).scalar_one(),  # type: ignore
         )
 
     async def get_or_create(

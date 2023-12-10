@@ -1,4 +1,4 @@
-FROM docker.io/python:3.11-slim-bookworm
+FROM docker.io/python:3.12-slim-bookworm
 
 ARG \
     UNAME=web \

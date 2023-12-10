@@ -1,6 +1,6 @@
 import secrets
 
-from pydantic import BaseSettings
+from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
@@ -10,8 +10,8 @@ class Settings(BaseSettings):
     TOKEN_URL: str = f'{API_PREFIX}/user/login/'
 
     SECRET_KEY: str = secrets.token_urlsafe(32)
-    ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7     # one week
-    USERS_OPEN_REGISTRATION = True
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7     # one week
+    USERS_OPEN_REGISTRATION: bool = True
 
     STATIC_ROOT: str = '/var/www/static'
     STATIC_URL: str = '/static/'

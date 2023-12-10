@@ -1,10 +1,9 @@
-from typing import Any
+from typing import Any, ClassVar
 from sqlalchemy.ext.declarative import declared_attr, DeclarativeMeta
 from sqlmodel import SQLModel, MetaData
 from sqlmodel.main import SQLModelMetaclass, default_registry
 
 from .session import Session
-from .crud import BaseCRUD
 
 
 naming_convention = {
@@ -17,7 +16,7 @@ naming_convention = {
 
 metadata = MetaData(naming_convention=naming_convention)
 default_registry.metadata = metadata
-Base: DeclarativeMeta = default_registry.generate_base()  # type: ignore
+Base: DeclarativeMeta = default_registry.generate_base()
 SQLModel.metadata = Base.metadata
 
 
@@ -26,21 +25,24 @@ class BaseModelMetaclassMixin:
             cls: Any,
             name: str, bases: tuple[type[Any], ...], attrs: dict[str, Any],
             **kwargs: Any
-            ) -> Any:
-        table = kwargs.get('table', False) or not attrs.get('__abstract__', False)
-        crud_annotation = attrs.get('__annotations__', {}).get('crud')
+            ) -> 'BaseModelMetaclassMixin':
 
-        if table and crud_annotation:
-            attrs['crud'] = BaseCRUD.default()
+        annotations = attrs.setdefault('__annotations__', {})
 
-        obj = super().__new__(cls, name, bases, attrs, **kwargs)   # type: ignore
+        CRUD = annotations.get('crud')  # pylint: disable=invalid-name
 
-        if table and crud_annotation: #  and CRUD:
-            obj.crud = crud_annotation(obj)
-        return obj
+        if CRUD is not None:
+            annotations['crud'] = ClassVar[CRUD]
+
+        obj = super().__new__(cls, name, bases, attrs, **kwargs)  # type: ignore
+
+        if CRUD is not None:
+            obj.crud = CRUD(obj)
+
+        return obj  # type: ignore
 
 
-class BaseModelMetaclass(BaseModelMetaclassMixin, SQLModelMetaclass):
+class BaseModelMetaclass(BaseModelMetaclassMixin, SQLModelMetaclass):  # pylint: disable=too-many-ancestors
     pass
 
 
@@ -66,10 +68,12 @@ class AbstractBase:
 class SABaseModel(Base, AbstractBase, metaclass=SABaseModelMetaclass):  # type: ignore
     __abstract__ = True
 
-    @declared_attr
+    @declared_attr  # type: ignore
     def __tablename__(cls: DeclarativeMeta) -> str:    # pylint: disable=no-self-argument
         return cls.__name__.lower()    # pylint: disable=no-member
 
 
-class BaseModel(SQLModel, AbstractBase, metaclass=BaseModelMetaclass):  # type: ignore
+class BaseModel(SQLModel, AbstractBase, metaclass=BaseModelMetaclass):
     pass
+    # class Config:
+    #     arbitrary_types_allowed = True

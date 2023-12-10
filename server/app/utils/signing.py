@@ -35,9 +35,9 @@ class Signer:
 
         if expires is not None:
             if isinstance(expires, int):
-                expires = datetime.datetime.utcnow() + datetime.timedelta(seconds=expires)
+                expires = datetime.datetime.now(datetime.UTC) + datetime.timedelta(seconds=expires)
             elif isinstance(expires, datetime.timedelta):
-                expires = datetime.datetime.utcnow() + expires
+                expires = datetime.datetime.now(datetime.UTC) + expires
 
         data = {'p': payload}
         if expires:
